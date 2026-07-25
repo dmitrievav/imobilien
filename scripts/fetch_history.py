@@ -102,18 +102,51 @@ def summarise(series, windows=WINDOWS):
             "peak": peak(series)}
 
 
+def cagr_from(series, start):
+    """Growth from a fixed calendar date — used for the longest window that
+    ALL assets share. Fixed-length windows are only comparable if every asset
+    has data for them; this is how we find the longest one that qualifies."""
+    end_d, end_v = series[-1]
+    # First point AT OR AFTER the date, never before it: measuring an asset
+    # from earlier than the shared start is exactly the window mismatch this
+    # function exists to prevent.
+    later = [p for p in series if p[0] >= start]
+    start_d, start_v = later[0] if later else series[-1]
+    span = (end_d - start_d).days / 365.25
+    if span <= 0 or start_v <= 0:
+        raise ValueError(f"cannot annualise over {span:.2f} years from {start_v}")
+    return {"from": start_d.isoformat(), "span_years": round(span, 1),
+            "from_value": round(start_v, 2), "to_value": round(end_v, 2),
+            "cagr_pct": round(((end_v / start_v) ** (1 / span) - 1) * 100, 2)}
+
+
+def common_window(series_by_name):
+    """Longest window every asset covers: starts where the youngest series does."""
+    start = max(s[0][0] for s in series_by_name.values())
+    return start, {name: cagr_from(s, start) for name, s in series_by_name.items()}
+
+
 def main():
     end = date.today()
-    start = date(end.year - max(WINDOWS) - 1, 1, 1)
+    # Reach for everything the sources hold; the MOEX indices (2003) end up
+    # setting the comparable window, and the pre-1998 ruble redenomination
+    # plus 1990s hyperinflation make deeper history uncomparable anyway.
+    start = date(1997, 1, 1)
     iso = (f"{start:%Y-%m-%d}", f"{end:%Y-%m-%d}")
+    series = {"usd": usd_series(start, end),
+              "gold_rub_g": gold_series(start, end),
+              "stocks_mcftr": moex_series("MCFTR", *iso),
+              "bonds_rgbitr": moex_series("RGBITR", *iso)}
+    common_start, common = common_window(series)
     point = {"date": end.isoformat(),
              "source": "cbr.ru (USD R01235, gold Code=1) and iss.moex.com history "
                        "(MCFTR = MOEX total return incl. dividends, RGBITR = OFZ total return)",
              "note": "nominal RUB; identical windows across assets so the numbers compare",
-             "usd": summarise(usd_series(start, end)),
-             "gold_rub_g": summarise(gold_series(start, end)),
-             "stocks_mcftr": summarise(moex_series("MCFTR", *iso)),
-             "bonds_rgbitr": summarise(moex_series("RGBITR", *iso))}
+             "common_window": {"from": common_start.isoformat(),
+                               "span_years": common[next(iter(common))]["span_years"],
+                               "limited_by": "MOEX indices start in 2003",
+                               "assets": common},
+             **{name: summarise(s) for name, s in series.items()}}
     return store.append_point(DATA_PATH, point, ["date", "usd", "gold_rub_g"])
 
 

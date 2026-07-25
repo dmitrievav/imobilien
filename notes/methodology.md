@@ -291,3 +291,46 @@ gold have only a past. Quoting OFZ at 8.1% hid a real, low-risk, actionable
 park the money while we look" than the deposit. The 20-year average is kept
 visible in the row's basis line, and `test_ofz_beats_deposit_at_every_horizon`
 pins the corrected ordering so the inversion cannot return silently.
+
+## Why 23 years, and why not 20 (round 7)
+
+The reader asked "почему среднее за 20 лет?" — a question with no good
+answer, because there wasn't one. `WINDOWS = [5, 10, 15, 20]` and a fetch
+start of `year - 21` were an arbitrary cap I wrote, not a constraint from
+the data. Consequences, measured rather than argued:
+
+| Window | Stocks | OFZ | Gold | USD |
+| --- | --- | --- | --- | --- |
+| 20 years | +7.8% | +8.1% | +15.9% | +5.5% |
+| **23.4 years (all available)** | **+13.3%** | **+8.6%** | **+15.3%** | **+3.9%** |
+
+Adding 3.4 years at the start nearly doubles the equity figure, because the
+market roughly tripled during 2003–2005. The 20-year cap had cut that off —
+which is precisely what produced the inverted risk premium the reader
+questioned two rounds earlier. At the full window stocks (13.3%) beat bonds
+(8.6%), and the inversion disappears. **The anomaly was an artifact of my
+arbitrary window, not a property of the market.**
+
+`fetch_history.common_window()` now derives the window instead of hardcoding
+it: it starts where the youngest series starts and measures every asset from
+that same date. `cagr_from()` takes the first point at or after that date —
+never before it, which a test pins, since measuring one asset from earlier
+than the shared start is exactly the mismatch the function exists to
+prevent.
+
+### Why not deeper than 2003
+
+- MOEX MCFTR starts 2003-02-26 and RGBITR 2002-12-30; there is no earlier
+  index. This is the binding constraint.
+- CBR gold reaches back to 1997-03-25 and USD to 1992-07-01, so deeper
+  numbers *can* be computed for two of the four assets — and doing so would
+  recreate the very window mismatch we just removed.
+- Worse, they would be meaningless. The 1998 redenomination divided the
+  ruble by 1000 (USD 30.12.1997 = 5960 old rubles → 01.01.1998 = 5.96 new),
+  and the early 1990s ran hyperinflation. A naive series through that gives
+  USD +21%/yr since 1992 — arithmetically true, economically noise, and not
+  comparable to today's 6% inflation without a matching CPI series we do not
+  have.
+- A 100-year Russian figure does not exist at all: no market, and no
+  continuous currency. The 125-year global figures on the page are the only
+  honest answer at that horizon.

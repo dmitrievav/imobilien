@@ -54,3 +54,25 @@ def test_summarise_reports_span_and_peak():
     assert out["span_years"] == 6.0
     assert [w["years"] for w in out["cagr"]] == [5]
     assert out["peak"]["ath_value"] == 150.0
+
+
+def test_common_window_starts_at_the_youngest_series():
+    """Real series are daily, so both assets have a point at the shared start;
+    the older one must be cut back to it rather than measured from its own."""
+    end = date.today()
+    old = [(end - timedelta(days=365 * 20), 100.0),
+           (end - timedelta(days=365 * 10), 150.0), (end, 200.0)]
+    young = [(end - timedelta(days=365 * 10), 50.0), (end, 100.0)]
+    start, res = fetch_history.common_window({"old": old, "young": young})
+    assert start == young[0][0]
+    # both measured from the same date, so both must report the same span
+    assert res["old"]["span_years"] == res["young"]["span_years"] == 10.0
+    assert res["old"]["from_value"] == 150.0  # not 100.0 from its own start
+
+
+def test_cagr_from_measures_from_the_given_date():
+    end = date.today()
+    s = [(end - timedelta(days=365 * 10), 1.0),
+         (end - timedelta(days=365 * 5), 2.0), (end, 4.0)]
+    r = fetch_history.cagr_from(s, end - timedelta(days=365 * 5))
+    assert abs(r["cagr_pct"] - 14.87) < 0.1  # doubling over 5 years

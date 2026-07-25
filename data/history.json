@@ -4,9 +4,44 @@
    "date": "2026-07-25",
    "source": "cbr.ru (USD R01235, gold Code=1) and iss.moex.com history (MCFTR = MOEX total return incl. dividends, RGBITR = OFZ total return)",
    "note": "nominal RUB; identical windows across assets so the numbers compare",
+   "common_window": {
+    "from": "2003-02-26",
+    "span_years": 23.4,
+    "limited_by": "MOEX indices start in 2003",
+    "assets": {
+     "usd": {
+      "from": "2003-02-26",
+      "span_years": 23.4,
+      "from_value": 31.59,
+      "to_value": 78.03,
+      "cagr_pct": 3.94
+     },
+     "gold_rub_g": {
+      "from": "2003-02-26",
+      "span_years": 23.4,
+      "from_value": 360.04,
+      "to_value": 10147.63,
+      "cagr_pct": 15.33
+     },
+     "stocks_mcftr": {
+      "from": "2003-02-26",
+      "span_years": 23.4,
+      "from_value": 335.67,
+      "to_value": 6172.49,
+      "cagr_pct": 13.25
+     },
+     "bonds_rgbitr": {
+      "from": "2003-02-26",
+      "span_years": 23.4,
+      "from_value": 111.61,
+      "to_value": 768.97,
+      "cagr_pct": 8.6
+     }
+    }
+   },
    "usd": {
-    "first": "2005-01-01",
-    "span_years": 21.6,
+    "first": "1997-01-01",
+    "span_years": 29.6,
     "cagr": [
      {
       "years": 5,
@@ -38,15 +73,15 @@
      }
     ],
     "peak": {
-     "ath_date": "2022-03-11",
-     "ath_value": 120.38,
+     "ath_date": "1997-12-30",
+     "ath_value": 5960.0,
      "now_value": 78.03,
-     "drawdown_pct": -35.18
+     "drawdown_pct": -98.69
     }
    },
    "gold_rub_g": {
-    "first": "2005-01-11",
-    "span_years": 21.5,
+    "first": "1997-03-25",
+    "span_years": 29.3,
     "cagr": [
      {
       "years": 5,
@@ -78,15 +113,15 @@
      }
     ],
     "peak": {
-     "ath_date": "2026-03-19",
-     "ath_value": 13407.69,
+     "ath_date": "1997-05-15",
+     "ath_value": 66076.0,
      "now_value": 10147.63,
-     "drawdown_pct": -24.31
+     "drawdown_pct": -84.64
     }
    },
    "stocks_mcftr": {
-    "first": "2005-01-11",
-    "span_years": 21.5,
+    "first": "2003-02-26",
+    "span_years": 23.4,
     "cagr": [
      {
       "years": 5,
@@ -125,8 +160,8 @@
     }
    },
    "bonds_rgbitr": {
-    "first": "2005-01-11",
-    "span_years": 21.5,
+    "first": "2002-12-30",
+    "span_years": 23.6,
     "cagr": [
      {
       "years": 5,
