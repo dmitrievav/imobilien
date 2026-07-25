@@ -1,0 +1,9 @@
+{
+ "passphrase": "test-vector",
+ "salt": "MDEyMzQ1Njc4OWFiY2RlZg==",
+ "iv": "AAAAAAAAAAAAAAAA",
+ "plaintext": "imobilien",
+ "blob": "AAAAAAAAAAAAAAAABjQHoV2p8IGz//emTQtoc0nwW9OOI1XLDw==",
+ "iterations": 600000,
+ "verifier": "UnGbZRd17lerfZ1+La3lhQHR5ozrP5inNn7SJtzbEFQ="
+}

@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Варианты</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body class="locked">
+<p id="gate-msg">Личная страница. Откройте её по ссылке из семейного чата.</p>
+<nav>
+  <a href="index.html">Вывод</a>
+  <a href="scenarios.html">Сценарии</a>
+  <a class="current" href="listings.html">Варианты</a>
+  <a href="checklist.html">Как проверить дом</a>
+</nav>
+<main>
+  <h1>Что мы смотрим</h1>
+  <p id="filter">
+    <button data-seg="all" style="font-size:1em">Все</button>
+    <button data-seg="house" style="font-size:1em">Дома</button>
+    <button data-seg="flat" style="font-size:1em">Квартиры</button>
+  </p>
+  <ul class="cards" id="cards"></ul>
+</main>
+<script src="assets/gate.js"></script>
+<script>
+const VERDICT_RU = {"fair": ["fair", "Справедливая цена"],
+  "overpriced": ["overpriced", "Переоценён"], "below market": ["below", "Ниже рынка"]};
+const STATUS_RU = {considering: "Рассматриваем", viewed: "Смотрели",
+  favorite: "Фаворит ★", rejected: "Отклонён"};
+const ORDER = {favorite: 0, considering: 1, viewed: 2, rejected: 3};
+const fmtM = (x) => (x / 1e6).toFixed(1).replace(".", ",") + " млн ₽";
+let key, journal, seg = "all";
+
+async function photoUrl(id, n) {
+  const buf = await fetch(`data/photos/${id}-${n}.enc`).then(r => {
+    if (!r.ok) throw new Error("no photo");
+    return r.arrayBuffer();
+  });
+  const plain = await decryptBlob(key, buf);
+  return URL.createObjectURL(new Blob([plain], { type: "image/jpeg" }));
+}
+
+function isHouse(l) { return l.segment !== "flat"; }
+
+async function render() {
+  const cards = document.getElementById("cards");
+  cards.innerHTML = "";
+  const items = journal.listings
+    .filter(l => seg === "all" || (seg === "house" ? isHouse(l) : !isHouse(l)))
+    .sort((a, b) => (ORDER[a.status] ?? 9) - (ORDER[b.status] ?? 9));
+  for (const l of items) {
+    const a = l.assessment || {};
+    const [vc, vt] = VERDICT_RU[a.verdict] || ["status", a.verdict || "—"];
+    const area = l.house_m2 || l.flat_m2 || "?";
+    const li = document.createElement("li");
+    li.className = "card" + (l.status === "rejected" ? " rejected" : "");
+    li.innerHTML =
+      `<div class="ph"></div><h2>${l.label}</h2>` +
+      `<p>${l.settlement} · ${area} м² · <strong>${fmtM(l.price_rub)}</strong></p>` +
+      `<p><span class="badge ${vc}">${vt}</span>` +
+      `<span class="badge status">${STATUS_RU[l.status] || l.status}</span>` +
+      (a.reprice_flag ? `<span class="badge flag">Цена скакала!</span>` : "") + `</p>` +
+      `<div class="details" hidden>` +
+      `<p>${Math.round(a.price_per_m2 / 1000)} тыс ₽/м² при рынке ~${Math.round(a.fair_per_m2 / 1000)} тыс ₽/м²</p>` +
+      (l.family_notes ? `<p>${l.family_notes}</p>` : "") +
+      (l.price_history ? `<p>История цены: ${l.price_history.map(h => h.date + " — " + fmtM(h.price_rub)).join("; ")}</p>` : "") +
+      (l.url ? `<p><a href="${l.url}" target="_blank" rel="noreferrer">Объявление</a></p>` : "") +
+      `<div class="more-photos"></div></div>`;
+    if (l.photos > 0) {
+      photoUrl(l.id, 1).then(u => { li.querySelector(".ph").innerHTML = `<img src="${u}" alt="">`; })
+        .catch(() => {});
+    }
+    li.addEventListener("click", async (ev) => {
+      if (ev.target.tagName === "A") return;
+      const d = li.querySelector(".details");
+      d.hidden = !d.hidden;
+      const box = li.querySelector(".more-photos");
+      if (!d.hidden && !box.childElementCount && l.photos > 1) {
+        for (let n = 2; n <= l.photos; n++) {
+          photoUrl(l.id, n).then(u => { box.innerHTML += `<img src="${u}" alt="">`; }).catch(() => {});
+        }
+      }
+    });
+    cards.appendChild(li);
+  }
+}
+
+gateReady.then(async (g) => {
+  key = g.cryptoKey;
+  const buf = await fetch("data/listings.enc").then(r => r.arrayBuffer());
+  journal = JSON.parse(new TextDecoder().decode(await decryptBlob(key, buf)));
+  document.querySelectorAll("#filter button").forEach(b =>
+    b.addEventListener("click", () => { seg = b.dataset.seg; render(); }));
+  render();
+}).catch(() => {});
+</script>
+</body>
+</html>

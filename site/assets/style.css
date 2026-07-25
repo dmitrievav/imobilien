@@ -1,0 +1,40 @@
+:root { --fg: #1a1a1a; --bg: #fdfcf8; --accent: #2a6b4f; --muted: #777;
+        --green: #2e8b57; --yellow: #d99a00; --red: #c0392b; }
+* { box-sizing: border-box; }
+body { font-family: Georgia, "Times New Roman", serif; font-size: 21px;
+       line-height: 1.55; color: var(--fg); background: var(--bg);
+       max-width: 60rem; margin: 0 auto; padding: 1rem; }
+h1 { font-size: 1.7em; } h2 { font-size: 1.3em; }
+nav { display: flex; flex-wrap: wrap; gap: 1rem; padding: .5rem 0;
+      border-bottom: 2px solid var(--accent); margin-bottom: 1.5rem; }
+nav a { color: var(--accent); text-decoration: none; font-weight: bold; }
+nav a.current { border-bottom: 3px solid var(--accent); }
+body.locked main, body.locked nav { display: none; }
+#gate-msg { text-align: center; margin-top: 4rem; color: var(--muted); }
+body.unlocked #gate-msg { display: none; }
+.light { font-size: 1.2em; padding: 1rem 1.5rem; border-radius: .75rem;
+         color: #fff; margin: 1rem 0; }
+.light.green { background: var(--green); } .light.yellow { background: var(--yellow); }
+.light.red { background: var(--red); }
+.asof { color: var(--muted); font-size: .8em; }
+#gate-msg.bad-key { color: var(--red); max-width: 30rem; margin-left: auto;
+                    margin-right: auto; }
+button.active { background: var(--accent); color: #fff; border-color: var(--accent);
+                font-weight: bold; }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+         gap: 1.2rem; padding: 0; list-style: none; }
+.card { border: 1px solid #ddd; border-radius: .75rem; background: #fff;
+        padding: 1rem; cursor: pointer; }
+.card img { max-width: 100%; border-radius: .5rem; }
+.card.rejected { opacity: .45; }
+.badge { display: inline-block; padding: .1rem .6rem; border-radius: 1rem;
+         font-size: .75em; color: #fff; margin-right: .4rem; }
+.badge.fair { background: var(--green); } .badge.overpriced { background: var(--red); }
+.badge.below { background: #1f6fb2; } .badge.status { background: var(--muted); }
+.badge.flag { background: var(--yellow); }
+.numbers { display: flex; gap: 2rem; flex-wrap: wrap; }
+.numbers div { text-align: center; }
+.numbers strong { display: block; font-size: 1.5em; }
+table { border-collapse: collapse; width: 100%; }
+td, th { border: 1px solid #ddd; padding: .5rem; text-align: right; }
+th:first-child, td:first-child { text-align: left; }

@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Семейный дом — вывод</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body class="locked">
+<p id="gate-msg">Личная страница. Откройте её по ссылке из семейного чата.</p>
+<nav>
+  <a class="current" href="index.html">Вывод</a>
+  <a href="scenarios.html">Сценарии</a>
+  <a href="listings.html">Варианты</a>
+  <a href="checklist.html">Как проверить дом</a>
+</nav>
+<main>
+  <h1>Стоит ли покупать сейчас?</h1>
+  <div id="verdict" class="light">Загрузка…</div>
+  <div class="numbers" id="numbers"></div>
+  <p>Дом — это не только деньги: это место, где собирается вся семья.
+     Эти цифры нужны лишь для того, чтобы мечта не обошлась дороже, чем должна.</p>
+  <p class="asof" id="asof"></p>
+</main>
+<script src="assets/gate.js"></script>
+<script>
+gateReady.then(async () => {
+  const s = await fetch("data/scenarios.json").then(r => r.json());
+  const v = s.verdict;
+  const el = document.getElementById("verdict");
+  el.classList.add(v.light);
+  el.textContent = v.reason_ru;
+  const fmt = (x) => (x / 1e6).toFixed(1).replace(".", ",") + " млн ₽";
+  document.getElementById("numbers").innerHTML =
+    `<div><strong>${fmt(v.numbers.buy_house_y3_real)}</strong>дом через 3 года<br>(в сегодняшних деньгах)</div>` +
+    `<div><strong>${fmt(v.numbers.deposit_y3_real)}</strong>депозит через 3 года<br>(в сегодняшних деньгах)</div>`;
+  document.getElementById("asof").textContent = "Данные от " + s.as_of + ". Расчёт для 17,5 млн ₽, базовый сценарий.";
+}).catch(() => {});
+</script>
+</body>
+</html>

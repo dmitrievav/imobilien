@@ -1,0 +1,14 @@
+# Secrets — passphrase for the site gate and journal encryption
+.env
+
+# Plaintext journal and photos: local working copies only,
+# the repo is public — only *.enc blobs may be committed
+data/listings.json
+data/photos/
+
+# Scratch
+.firecrawl/
+__pycache__/
+.pytest_cache/
+.venv/
+.playwright-mcp/

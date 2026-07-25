@@ -1,0 +1,20 @@
+{
+  "as_of": "2026-07-25",
+  "inflation": {"pess": 0.10, "base": 0.07, "opt": 0.05},
+  "deposit": {"rate_start": 0.13, "rate_floor": 0.08, "decay_years": 3, "interest_tax": 0.13},
+  "ofz_ytm": 0.13,
+  "growth": {
+    "house": {"pess": -0.03, "base": 0.04, "opt": 0.10},
+    "flat": {"pess": -0.02, "base": 0.05, "opt": 0.10}
+  },
+  "returns": {
+    "tmos": {"pess": -0.05, "base": 0.12, "opt": 0.20},
+    "tpay": {"pess": 0.06, "base": 0.11, "opt": 0.15},
+    "gold": {"pess": -0.02, "base": 0.06, "opt": 0.15},
+    "usd": {"pess": 0.00, "base": 0.05, "opt": 0.12},
+    "btc": {"pess": -0.40, "base": 0.15, "opt": 0.60}
+  },
+  "house_maintenance_rate": 0.015,
+  "property_tax_rate": 0.001,
+  "transaction_cost_rate": 0.03
+}

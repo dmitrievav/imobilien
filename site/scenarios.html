@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Сценарии для капитала</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body class="locked">
+<p id="gate-msg">Личная страница. Откройте её по ссылке из семейного чата.</p>
+<nav>
+  <a href="index.html">Вывод</a>
+  <a class="current" href="scenarios.html">Сценарии</a>
+  <a href="listings.html">Варианты</a>
+  <a href="checklist.html">Как проверить дом</a>
+</nav>
+<main>
+  <h1>Что станет с деньгами за 10 лет</h1>
+  <p>Все суммы — в сегодняшних деньгах (с учётом инфляции), базовый сценарий.</p>
+  <p id="capitals"></p>
+  <canvas id="chart" height="220"></canvas>
+  <h2>Через 3 и 5 лет</h2>
+  <table id="tbl"></table>
+  <p class="asof" id="asof"></p>
+</main>
+<script src="assets/chart.umd.js"></script>
+<script src="assets/gate.js"></script>
+<script>
+const NAMES = {buy_now_house: "Купить дом сейчас", buy_now_flat: "Купить квартиру сейчас",
+  deposit: "Депозит", ofz: "ОФЗ", tmos: "Фонд акций (TMOS)", tpay: "Фонд облигаций (TPAY)",
+  gold: "Золото", usd: "Доллар", btc: "Биткойн"};
+const COLORS = {buy_now_house: "#2a6b4f", buy_now_flat: "#67a487", deposit: "#1f6fb2",
+  ofz: "#7db3dd", tmos: "#c0392b", tpay: "#d98880", gold: "#d99a00", usd: "#888", btc: "#8e44ad"};
+let chart, data, capital;
+
+// 1 год / 2–4 года / 5+ лет — the page is read by 70+ parents, "1 лет" jars.
+function yearLabel(y) {
+  if (y === 0) return "сейчас";
+  const last = y % 10, tens = y % 100;
+  if (last === 1 && tens !== 11) return y + " год";
+  if (last >= 2 && last <= 4 && (tens < 12 || tens > 14)) return y + " года";
+  return y + " лет";
+}
+
+function render() {
+  const fmt = (x) => (x / 1e6).toFixed(1).replace(".", ",");
+  const ds = Object.keys(NAMES).map(k => ({
+    label: NAMES[k], data: data.scenarios[k][capital].base,
+    borderColor: COLORS[k], fill: false, tension: .2 }));
+  if (chart) chart.destroy();
+  chart = new Chart(document.getElementById("chart"), {
+    type: "line",
+    data: { labels: [...Array(11).keys()].map(yearLabel), datasets: ds },
+    options: { scales: { y: { ticks: { callback: v => fmt(v) + " млн" } } },
+               plugins: { legend: { labels: { font: { size: 16 } } } } }
+  });
+  let html = "<tr><th>Вариант</th><th>3 года</th><th>5 лет</th><th>плохой / хороший (5 лет)</th></tr>";
+  for (const k of Object.keys(NAMES)) {
+    const s = data.scenarios[k][capital];
+    html += `<tr><td>${NAMES[k]}</td><td>${fmt(s.base[3])} млн</td><td>${fmt(s.base[5])} млн</td>` +
+            `<td>${fmt(s.pess[5])} — ${fmt(s.opt[5])} млн</td></tr>`;
+  }
+  document.getElementById("tbl").innerHTML = html;
+}
+
+gateReady.then(async () => {
+  data = await fetch("data/scenarios.json").then(r => r.json());
+  capital = String(data.capital_levels[1]);
+  const fmtC = (c) => (c / 1e6).toFixed(1).replace(".0", "").replace(".", ",") + " млн";
+  document.getElementById("capitals").innerHTML = "Капитал: " + data.capital_levels.map(c =>
+    `<button data-c="${c}" style="font-size:1em;margin-right:.5rem">${fmtC(c)} ₽</button>`).join("");
+  const buttons = [...document.querySelectorAll("#capitals button")];
+  const setActive = (b) => buttons.forEach(x => x.classList.toggle("active", x === b));
+  buttons.forEach(b => b.addEventListener("click", () => {
+    capital = b.dataset.c;
+    setActive(b);
+    render();
+  }));
+  setActive(buttons.find(b => b.dataset.c === capital));
+  document.getElementById("asof").textContent = "Данные от " + data.as_of + ".";
+  render();
+}).catch(() => {});
+</script>
+</body>
+</html>
