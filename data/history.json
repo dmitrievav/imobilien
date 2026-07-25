@@ -1,0 +1,69 @@
+{
+ "points": [
+  {
+   "date": "2026-07-25",
+   "source": "cbr.ru XML_dynamic (USD R01235) and xml_metall (gold, Code=1)",
+   "note": "nominal CAGR in RUB; compare against inflation to judge real return",
+   "usd": [
+    {
+     "years": 5,
+     "from": "2021-07-24",
+     "from_value": 73.7663,
+     "to_value": 78.0308,
+     "cagr_pct": 1.13
+    },
+    {
+     "years": 10,
+     "from": "2016-07-26",
+     "from_value": 64.9184,
+     "to_value": 78.0308,
+     "cagr_pct": 1.86
+    },
+    {
+     "years": 15,
+     "from": "2011-07-26",
+     "from_value": 27.7413,
+     "to_value": 78.0308,
+     "cagr_pct": 7.14
+    },
+    {
+     "years": 20,
+     "from": "2006-07-25",
+     "from_value": 26.9223,
+     "to_value": 78.0308,
+     "cagr_pct": 5.46
+    }
+   ],
+   "gold_rub_g": [
+    {
+     "years": 5,
+     "from": "2021-07-24",
+     "from_value": 4276.19,
+     "to_value": 10147.63,
+     "cagr_pct": 18.86
+    },
+    {
+     "years": 10,
+     "from": "2016-07-26",
+     "from_value": 2744.63,
+     "to_value": 10147.63,
+     "cagr_pct": 13.98
+    },
+    {
+     "years": 15,
+     "from": "2011-07-26",
+     "from_value": 1443.54,
+     "to_value": 10147.63,
+     "cagr_pct": 13.89
+    },
+    {
+     "years": 20,
+     "from": "2006-07-25",
+     "from_value": 532.6,
+     "to_value": 10147.63,
+     "cagr_pct": 15.88
+    }
+   ]
+  }
+ ]
+}

@@ -55,6 +55,21 @@
     не ростом цены.</p>
   </div>
 
+  <div class="explain">
+    <p><strong>«Но доллар и золото ведь всегда растут — почему доллар на
+    графике падает?»</strong> Потому что здесь всё пересчитано в сегодняшние
+    деньги. Доллар в рублях действительно дорожает — но и в магазине всё
+    дорожает, и вопрос только в том, что быстрее.</p>
+    <p>Вот что было на самом деле, по данным Банка России:</p>
+    <div class="scroll"><table id="history"></table></div>
+    <p>Доллар растёт <em>рывками</em> — 1998, 2014, 2022. Между рывками он
+    отстаёт от подорожания жизни, а наличные доллары ещё и не платят
+    процентов. Поэтому доллар — это страховка от резкого обвала рубля, а не
+    способ приумножить деньги. С золотом ваша интуиция полностью
+    подтверждается: оно обгоняло инфляцию с большим запасом, и на нашем
+    графике его линия идёт вверх.</p>
+  </div>
+
   <h2>Из каких цифр это посчитано</h2>
   <div class="scroll"><table id="assumptions"></table></div>
   <p class="hint">Эти цифры можно и нужно спорить — от них зависит весь
@@ -116,6 +131,20 @@ function render() {
 
   const a = data.assumptions_echo;
   const pct = (x) => (x * 100).toFixed(1).replace(".0", "").replace(".", ",") + "%";
+
+  const h = data.history_echo;
+  const histEl = document.getElementById("history");
+  if (h && histEl) {
+    const infl = a.inflation.base * 100;
+    const row = (label, windows) => windows.map(w =>
+      `<tr><td>${label}, ${yearLabel(w.years)}</td>` +
+      `<td>${w.cagr_pct.toFixed(1).replace(".", ",")}% в год</td>` +
+      `<td>${w.cagr_pct > infl ? "обгонял инфляцию" : "отставал от инфляции"}</td></tr>`).join("");
+    histEl.innerHTML =
+      "<tr><th>Что и за какой срок</th><th>Рост в рублях</th><th>Итог</th></tr>" +
+      row("Доллар", h.usd) + row("Золото", h.gold_rub_g) +
+      `<tr><td>Для сравнения: подорожание жизни сейчас</td><td>${pct(a.inflation.base)} в год</td><td>—</td></tr>`;
+  }
   document.getElementById("assumptions").innerHTML =
     "<tr><th>Что считаем</th><th>Значение в год</th></tr>" +
     `<tr><td>Подорожание жизни (инфляция)</td><td>${pct(a.inflation.base)}</td></tr>` +

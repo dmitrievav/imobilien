@@ -101,4 +101,12 @@ Non-negotiable, enforced from the first commit:
   step needs `IMOBILIEN_KEY`; without it the run reports a skip rather
   than failing.
 - `python scripts/add_listing.py` — ingest a new listing (agent-supplied JSON).
+- `python scripts/add_photos.py <id> <files...>` — attach photos to a
+  listing that already exists in the journal.
+- `python scripts/fetch_history.py` — measure long-run nominal CAGR for
+  USD/RUB and gold from CBR series into `data/history.json`. Run it when an
+  assumption band for those assets is being argued about; `model.py` echoes
+  the latest point into `site/data/scenarios.json` so the site can show
+  measured history next to the forecast. Not part of `update_all.py` —
+  20-year history moves slowly and the request is heavy.
 - `pytest` — model/fair-price math, crypto round-trip and fixed-vector tests.

@@ -54,12 +54,17 @@ As-of date for the whole file: `2026-07-25`.
   specific backtest.
 - `returns.tpay = {pess: 0.06, base: 0.11, opt: 0.15}` — expected return
   band for TPAY (money-market/bond ETF). **[refine]** — same caveat.
-- `returns.gold = {pess: -0.02, base: 0.06, opt: 0.15}` — expected RUB
-  gold return band. **[refine]** — same caveat; could be anchored to
-  `data/cbr.json` accounting gold price history once we have enough
-  points.
-- `returns.usd = {pess: 0.00, base: 0.05, opt: 0.12}` — expected RUB/USD
-  appreciation band. **[refine]** — same caveat.
+- `returns.gold = {pess: 0.02, base: 0.09, opt: 0.16}` — expected RUB gold
+  return band, raised from a guessed 6% after measuring the actual CBR
+  series (see "Measured history" below: +14 to +19%/yr over 5–20 years).
+  Base is deliberately set below the measured run rather than extrapolating
+  it. **[refine]** — the size of that haircut is a judgement call.
+- `returns.usd = {pess: 0.00, base: 0.035, opt: 0.12}` — expected RUB/USD
+  appreciation band, lowered from a guessed 5% after measuring the CBR
+  series (+1.1%/yr over 5 years, +1.9% over 10, +5.5% over 20 — see
+  "Measured history"). 3.5% also matches relative purchasing power parity
+  (Russian inflation ≈6% minus US inflation ≈2.5%). This scenario is
+  **cash** dollars: no interest is credited.
 - `returns.btc = {pess: -0.40, base: 0.15, opt: 0.60}` — expected BTC
   return band, deliberately the widest of all bands given volatility.
   **[refine]** — illustrative only, labeled high-risk by design; not
@@ -238,3 +243,43 @@ Two things this buys us:
 The yield index bundles rent with appreciation; see "Why the house line
 falls in real terms" for why that does not transfer to an owner-occupied
 family house.
+
+## Measured history: USD and gold (`data/history.json`, `scripts/fetch_history.py`)
+
+Two assumption bands used to be pure guesses, and a reader challenged them
+on the obvious grounds that "the dollar and gold always go up". Measured
+nominal CAGR in RUB, straight from CBR series (USD `R01235` via
+`XML_dynamic`, gold accounting price via `xml_metall`, Code=1), as of
+2026-07-25:
+
+| Window | USD/RUB | Gold RUB/g |
+| --- | --- | --- |
+| 5 years | +1.13%/yr | +18.86%/yr |
+| 10 years | +1.86%/yr | +13.98%/yr |
+| 15 years | +7.14%/yr | +13.89%/yr |
+| 20 years | +5.46%/yr | +15.88%/yr |
+
+What this settles:
+
+- **Gold**: the intuition is right and our old `base: 0.06` was far too low.
+  Gold beat Russian inflation over every window measured. Raised to
+  `{pess: 0.02, base: 0.09, opt: 0.16}` — deliberately *below* the measured
+  14–19%, because extrapolating an exceptional two-decade run forward is
+  not the same as measuring it. **[refine]** — the gap between measured
+  (14%) and assumed (9%) is a judgement call, not a calculation.
+- **USD cash**: the intuition is wrong for the recent past. Over 5 and 10
+  years the dollar grew 1–2%/yr against 6–8%/yr inflation, so cash dollars
+  *lost* real purchasing power badly. Even the 20-year figure (5.5%/yr)
+  roughly matches, not beats, Russian inflation over the same span. Base
+  lowered from 0.05 to **0.035**, which is also what relative purchasing
+  power parity predicts (Russian inflation ≈6% minus US inflation ≈2.5%).
+  The pattern is jumps (1998, 2014, 2022) separated by long stretches of
+  lagging — insurance against a devaluation event, not a growth asset.
+- The model's `usd` scenario is **cash** dollars: no interest. A
+  dollar-denominated interest-bearing instrument would add its coupon and
+  is not modelled.
+
+Consequence for the chart: gold's line now rises (+2.8%/yr real) and the
+dollar's still falls (−2.4%/yr real). Both are now defensible from data
+rather than from a guess. `site/scenarios.html` shows this table to the
+reader for exactly the question that prompted it.

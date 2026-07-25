@@ -12,6 +12,7 @@ HORIZON = 10
 PATHS = ["pess", "base", "opt"]
 OUT_PATH = Path("site/data/scenarios.json")
 ASSUMPTIONS_PATH = Path("data/assumptions.json")
+HISTORY_PATH = Path("data/history.json")
 
 
 def _real(nominal, infl):
@@ -82,7 +83,13 @@ def run(a):
 
 def main():
     a = json.loads(ASSUMPTIONS_PATH.read_text())
-    store.atomic_write(OUT_PATH, run(a))
+    out = run(a)
+    # Measured history travels with the forecast so the site can show readers
+    # what these assets actually did, not only what we assume they will do.
+    history = store.load(HISTORY_PATH)["points"]
+    if history:
+        out["history_echo"] = history[-1]
+    store.atomic_write(OUT_PATH, out)
     print(f"wrote {OUT_PATH}")
 
 

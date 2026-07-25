@@ -10,8 +10,8 @@
   "returns": {
     "tmos": {"pess": -0.05, "base": 0.12, "opt": 0.20},
     "tpay": {"pess": 0.06, "base": 0.11, "opt": 0.15},
-    "gold": {"pess": -0.02, "base": 0.06, "opt": 0.15},
-    "usd": {"pess": 0.00, "base": 0.05, "opt": 0.12},
+    "gold": {"pess": 0.02, "base": 0.09, "opt": 0.16},
+    "usd": {"pess": 0.00, "base": 0.035, "opt": 0.12},
     "btc": {"pess": -0.40, "base": 0.15, "opt": 0.60}
   },
   "house_maintenance_rate": 0.015,
