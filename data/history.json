@@ -2,68 +2,168 @@
  "points": [
   {
    "date": "2026-07-25",
-   "source": "cbr.ru XML_dynamic (USD R01235) and xml_metall (gold, Code=1)",
-   "note": "nominal CAGR in RUB; compare against inflation to judge real return",
-   "usd": [
-    {
-     "years": 5,
-     "from": "2021-07-24",
-     "from_value": 73.7663,
-     "to_value": 78.0308,
-     "cagr_pct": 1.13
-    },
-    {
-     "years": 10,
-     "from": "2016-07-26",
-     "from_value": 64.9184,
-     "to_value": 78.0308,
-     "cagr_pct": 1.86
-    },
-    {
-     "years": 15,
-     "from": "2011-07-26",
-     "from_value": 27.7413,
-     "to_value": 78.0308,
-     "cagr_pct": 7.14
-    },
-    {
-     "years": 20,
-     "from": "2006-07-25",
-     "from_value": 26.9223,
-     "to_value": 78.0308,
-     "cagr_pct": 5.46
+   "source": "cbr.ru (USD R01235, gold Code=1) and iss.moex.com history (MCFTR = MOEX total return incl. dividends, RGBITR = OFZ total return)",
+   "note": "nominal RUB; identical windows across assets so the numbers compare",
+   "usd": {
+    "first": "2005-01-01",
+    "span_years": 21.6,
+    "cagr": [
+     {
+      "years": 5,
+      "from": "2021-07-24",
+      "from_value": 73.77,
+      "to_value": 78.03,
+      "cagr_pct": 1.13
+     },
+     {
+      "years": 10,
+      "from": "2016-07-26",
+      "from_value": 64.92,
+      "to_value": 78.03,
+      "cagr_pct": 1.86
+     },
+     {
+      "years": 15,
+      "from": "2011-07-26",
+      "from_value": 27.74,
+      "to_value": 78.03,
+      "cagr_pct": 7.14
+     },
+     {
+      "years": 20,
+      "from": "2006-07-25",
+      "from_value": 26.92,
+      "to_value": 78.03,
+      "cagr_pct": 5.46
+     }
+    ],
+    "peak": {
+     "ath_date": "2022-03-11",
+     "ath_value": 120.38,
+     "now_value": 78.03,
+     "drawdown_pct": -35.18
     }
-   ],
-   "gold_rub_g": [
-    {
-     "years": 5,
-     "from": "2021-07-24",
-     "from_value": 4276.19,
-     "to_value": 10147.63,
-     "cagr_pct": 18.86
-    },
-    {
-     "years": 10,
-     "from": "2016-07-26",
-     "from_value": 2744.63,
-     "to_value": 10147.63,
-     "cagr_pct": 13.98
-    },
-    {
-     "years": 15,
-     "from": "2011-07-26",
-     "from_value": 1443.54,
-     "to_value": 10147.63,
-     "cagr_pct": 13.89
-    },
-    {
-     "years": 20,
-     "from": "2006-07-25",
-     "from_value": 532.6,
-     "to_value": 10147.63,
-     "cagr_pct": 15.88
+   },
+   "gold_rub_g": {
+    "first": "2005-01-11",
+    "span_years": 21.5,
+    "cagr": [
+     {
+      "years": 5,
+      "from": "2021-07-24",
+      "from_value": 4276.19,
+      "to_value": 10147.63,
+      "cagr_pct": 18.86
+     },
+     {
+      "years": 10,
+      "from": "2016-07-26",
+      "from_value": 2744.63,
+      "to_value": 10147.63,
+      "cagr_pct": 13.98
+     },
+     {
+      "years": 15,
+      "from": "2011-07-26",
+      "from_value": 1443.54,
+      "to_value": 10147.63,
+      "cagr_pct": 13.89
+     },
+     {
+      "years": 20,
+      "from": "2006-07-25",
+      "from_value": 532.6,
+      "to_value": 10147.63,
+      "cagr_pct": 15.88
+     }
+    ],
+    "peak": {
+     "ath_date": "2026-03-19",
+     "ath_value": 13407.69,
+     "now_value": 10147.63,
+     "drawdown_pct": -24.31
     }
-   ]
+   },
+   "stocks_mcftr": {
+    "first": "2005-01-11",
+    "span_years": 21.5,
+    "cagr": [
+     {
+      "years": 5,
+      "from": "2021-07-23",
+      "from_value": 7026.46,
+      "to_value": 6172.49,
+      "cagr_pct": -2.56
+     },
+     {
+      "years": 10,
+      "from": "2016-07-25",
+      "from_value": 2697.22,
+      "to_value": 6172.49,
+      "cagr_pct": 8.63
+     },
+     {
+      "years": 15,
+      "from": "2011-07-25",
+      "from_value": 1914.07,
+      "to_value": 6172.49,
+      "cagr_pct": 8.12
+     },
+     {
+      "years": 20,
+      "from": "2006-07-24",
+      "from_value": 1363.38,
+      "to_value": 6172.49,
+      "cagr_pct": 7.84
+     }
+    ],
+    "peak": {
+     "ath_date": "2025-02-25",
+     "ath_value": 8243.63,
+     "now_value": 6172.49,
+     "drawdown_pct": -25.12
+    }
+   },
+   "bonds_rgbitr": {
+    "first": "2005-01-11",
+    "span_years": 21.5,
+    "cagr": [
+     {
+      "years": 5,
+      "from": "2021-07-23",
+      "from_value": 611.02,
+      "to_value": 768.97,
+      "cagr_pct": 4.7
+     },
+     {
+      "years": 10,
+      "from": "2016-07-25",
+      "from_value": 393.19,
+      "to_value": 768.97,
+      "cagr_pct": 6.94
+     },
+     {
+      "years": 15,
+      "from": "2011-07-25",
+      "from_value": 272.08,
+      "to_value": 768.97,
+      "cagr_pct": 7.17
+     },
+     {
+      "years": 20,
+      "from": "2006-07-24",
+      "from_value": 163.24,
+      "to_value": 768.97,
+      "cagr_pct": 8.06
+     }
+    ],
+    "peak": {
+     "ath_date": "2026-04-23",
+     "ath_value": 786.01,
+     "now_value": 768.97,
+     "drawdown_pct": -2.17
+    }
+   }
   }
  ]
 }
