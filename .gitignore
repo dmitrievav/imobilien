@@ -12,3 +12,6 @@ __pycache__/
 .pytest_cache/
 .venv/
 .playwright-mcp/
+
+# stray browser-verification screenshots
+*.png
