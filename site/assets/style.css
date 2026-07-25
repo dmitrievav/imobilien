@@ -41,6 +41,10 @@ button.active { background: var(--accent); color: #fff; border-color: var(--acce
 .hint { color: var(--muted); font-size: .85em; margin: .4rem 0 1.4rem; }
 .delta { color: var(--muted); font-size: .85em; white-space: nowrap; }
 .scroll { overflow-x: auto; }
+.basis { color: var(--muted); font-size: .72em; }
+.badge.risk-low { background: var(--green); }
+.badge.risk-mid { background: var(--yellow); }
+.badge.risk-high { background: var(--red); }
 table { border-collapse: collapse; width: 100%; }
 td, th { border: 1px solid #ddd; padding: .5rem; text-align: right; }
 th:first-child, td:first-child { text-align: left; }

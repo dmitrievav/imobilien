@@ -4,99 +4,84 @@ Working notes on where every number in the model comes from, so future
 refinement has a paper trail. Anything marked **[refine]** is an initial
 estimate standing in until real data replaces it.
 
+## Model shape (rewritten 2026-07-25, round 4)
+
+The first version showed inflation-adjusted ("real") rubles with a
+pessimistic/optimistic fan across three capital levels. A reader — the
+project's actual audience — reported it as counter-intuitive: lines went
+*down* while everyone knows prices go *up*, and the fan added noise without
+adding information ("и так понятно, что гарантии нет"). Rebuilt to:
+
+- **Nominal rubles.** Every line rises, which matches intuition. Honesty is
+  preserved by a dashed grey `inflation_line` — what you need just to keep
+  up with prices. Above it is real gain, below it is a real loss. Same
+  information, no counter-intuitive descent.
+- **One capital: 10 mln RUB.** The three-level switcher is gone.
+- **One average return per asset instead of a band**, taken from the
+  longest measured window available, on the explicit assumption that the
+  future resembles the past.
+- **A risk rank** (`низкий` / `средний` / `высокий`) carries the
+  uncertainty the band used to carry, in words a 70+ reader can act on.
+
 ## `data/assumptions.json` — value by value
 
-As-of date for the whole file: `2026-07-25`.
+As-of date for the whole file: `2026-07-25`. Rates are nominal, annual.
 
-- `inflation.pess = 0.09`, `inflation.base = 0.06`, `inflation.opt = 0.045` —
-  base is now the **measured** IRN.RU July 2026 inflation reading of 6.0%
-  (`data/irn.json`, source `https://www.irn.ru/analitika/`, seen
-  2026-07-25), with a band around it. Anchored, not invented; the band
-  width is still a judgement call. Previous value was an unanchored 7.0%.
-- `deposit.rate_start = 0.129` — the **measured** IRN.RU July 2026 average
-  bank-deposit rate of 12.9% (`data/irn.json`). Replaces the earlier
-  guessed 13%, and independently confirms that guess was close. Still
-  worth a top-10 read from `cbr.ru` if `data/deposits.json` ever gets a
-  fetcher, but no longer a blind estimate.
-- `deposit.rate_floor = 0.08` — assumed long-run real-terms floor once
-  rate-cutting cycle ends. **[refine]** — initial estimate, no source yet.
-- `deposit.decay_years = 3` — assumed glide path length from
-  `rate_start` to `rate_floor`. **[refine]** — initial estimate, matches
-  the model's own 3-year "wait" horizon used in the verdict light, not an
-  independently sourced number.
-- `deposit.interest_tax = 0.13` — Russian personal income tax (NDFL) rate
-  on deposit interest above the tax-free threshold. Source: RF Tax Code,
-  standard 13% NDFL rate. Not flagged for refinement — this is a
-  statutory rate, not an estimate.
-- `ofz_ytm = 0.13` — assumed OFZ (federal bond) yield-to-maturity.
-  **[refine]** — initial estimate; should be replaced with an actual
-  MOEX/`rusbonds` OFZ curve read for a representative maturity matching
-  the model horizon.
-- `growth.flat = {pess: 0.00, base: 0.06, opt: 0.11}` — nominal annual
-  **price** growth for flats, derived from IRN.RU's July 2026 Podmoskovye
-  housing *yield* of 11.9%/yr (`data/irn.json`). That index deliberately
-  bundles two things: rental income plus price change. Subtracting an
-  assumed ~5.5% gross rental yield leaves ≈6.4% of price appreciation,
-  rounded to 6%. **[refine]** — the 5.5% rental-yield split is the weak
-  link; replace it with a real Podmoskovye rent-to-price read (IRN has a
-  rent calculator) and the base growth figure follows directly.
-- `growth.house = {pess: -0.01, base: 0.05, opt: 0.10}` — same idea for
-  year-round houses, set 1pp below flats because IRN measures flats and
-  the country-house segment is less liquid and slower to reprice.
-  **[refine]** — **this is still the single most load-bearing unanchored
-  number in the project**: it alone decides whether the house line rises
-  or falls, and no IRN/Rosstat series covers Pushkinsky-district IZhS
-  directly. Treat the house verdict as provisional until it is sourced.
+- `capital = 10000000`, `horizon_years = 10` — set by the reader.
+- `inflation = 0.06` — measured IRN.RU July 2026 reading (`data/irn.json`,
+  `https://www.irn.ru/analitika/`). Drives only the reference line.
+- `deposit` — glides from today's measured 12.9% (IRN) down to an assumed
+  8% floor over 3 years, interest taxed at the statutory 13% NDFL. The
+  displayed `avg_rate` (7.8%) is the growth this path actually delivers, so
+  the table never advertises today's peak rate as a ten-year expectation.
+  **[refine]** — the 8% floor and 3-year glide are judgement, not data.
+- `assets.tmos.rate = 0.1325` — **measured**: MOEX total-return index
+  MCFTR, 2003-02-26 (335.67) to 2026-07-24 (6172.49), 23.4 years. Includes
+  dividends. TMOS tracks this index, so the index history is the honest
+  proxy for a fund with a shorter life.
+- `assets.tpay.rate = 0.0903` — **measured**: RGBITR (OFZ total return),
+  2003-01-04 (100.34) to 2026-07-24 (768.97), 23.6 years.
+- `assets.ofz.rate = 0.13` — current yield to maturity, not history. For a
+  bond held to maturity this is contractual, which beats a historical
+  average. Deliberately a different basis from `tpay`, and the site shows
+  the basis per row so the difference is visible.
+- `assets.gold.rate = 0.1588` — **measured**: CBR accounting gold price,
+  20 years (see "Measured history").
+- `assets.usd.rate = 0.0546` — **measured**: CBR USD rate, 20 years. Cash
+  dollars: no interest is credited.
+- `assets.buy_now_flat.rate = 0.06` and `buy_now_house.rate = 0.05` —
+  **[refine]**, and the weakest numbers in the project. Derived from IRN's
+  July 2026 Podmoskovye housing yield (11.9%) minus an assumed ~5.5% gross
+  rental yield, with houses set 1pp below flats for illiquidity. No long
+  measured series exists for us here: IRN blocks scripted access to its
+  index history, and no Rosstat series covers Pushkinsky-district IZhS.
+  Everything the site says about houses rests on this estimate.
+- `house_maintenance_rate = 0.015`, `property_tax_rate = 0.001`,
+  `transaction_cost_rate = 0.03` — **[refine]** initial estimates; applied
+  to both property scenarios. Note the property lines are the only ones
+  carrying yearly costs, which is why they trail their headline rate (a
+  5.0% house grows at 3.4% after upkeep).
+- **Bitcoin was dropped** from the projection. The free CoinGecko tier
+  serves only 365 days, and over that year BTC fell ~47% in RUB — one year
+  is not a long-run average, and projecting −47% for a decade would be
+  theatre. Mentioned on the page as a risk illustration instead.
 
-- `returns.tmos = {pess: -0.05, base: 0.12, opt: 0.20}` — expected return
-  band for the TMOS (MOEX index) ETF. **[refine]** — wide, honestly
-  uncertain band based on general historical MOEX equity behavior, not a
-  specific backtest.
-- `returns.tpay = {pess: 0.06, base: 0.11, opt: 0.15}` — expected return
-  band for TPAY (money-market/bond ETF). **[refine]** — same caveat.
-- `returns.gold = {pess: 0.02, base: 0.09, opt: 0.16}` — expected RUB gold
-  return band, raised from a guessed 6% after measuring the actual CBR
-  series (see "Measured history" below: +14 to +19%/yr over 5–20 years).
-  Base is deliberately set below the measured run rather than extrapolating
-  it. **[refine]** — the size of that haircut is a judgement call.
-- `returns.usd = {pess: 0.00, base: 0.035, opt: 0.12}` — expected RUB/USD
-  appreciation band, lowered from a guessed 5% after measuring the CBR
-  series (+1.1%/yr over 5 years, +1.9% over 10, +5.5% over 20 — see
-  "Measured history"). 3.5% also matches relative purchasing power parity
-  (Russian inflation ≈6% minus US inflation ≈2.5%). This scenario is
-  **cash** dollars: no interest is credited.
-- `returns.btc = {pess: -0.40, base: 0.15, opt: 0.60}` — expected BTC
-  return band, deliberately the widest of all bands given volatility.
-  **[refine]** — illustrative only, labeled high-risk by design; not
-  meant to be tightened the same way as the others.
-- `house_maintenance_rate = 0.015` — assumed annual house maintenance
-  cost as a fraction of value ("~1.5%/yr" per the design doc).
-  **[refine]** — initial estimate, no district-specific source yet.
-- `property_tax_rate = 0.001` — assumed effective property tax rate.
-  **[refine]** — initial estimate; the model applies the same rate to
-  houses and flats (a known simplification, see design doc "Deferred"
-  list — flat vs. house property-tax nuance is out of scope for now).
-- `transaction_cost_rate = 0.03` — assumed one-off transaction cost
-  (agent fee + registration + incidental costs) as a fraction of price.
-  **[refine]** — initial estimate, typical Moscow-region ballpark, not
-  itemized.
+### Known bias
 
-## Why the house line falls in real terms
+Only the deposit and OFZ are taxed in the model (13% NDFL). Gold, currency
+and the funds compound untaxed, which flatters them; long-held securities
+get partial relief in reality (ЛДВ), gold and currency do not. The house
+lines carry upkeep costs that no other asset carries — that asymmetry is
+real, not a modelling error, but it means the property rows are compared
+net while the rest are compared gross.
 
-Not a market observation — arithmetic from the values above. Base case:
-5.0% nominal price growth − 1.5% maintenance − 0.1% property tax = 3.4%
-nominal, against 6.0% inflation ⇒ ≈ **−2.5%/yr in real terms**, plus a
-one-off 3.0% entry cost. The deposit meanwhile nets 12.9% × (1 − 0.13) ≈
-11.2% nominal ⇒ ≈ +5% real at the start, decaying as rates fall.
+### What the house numbers leave out
 
-Crucially, IRN's own 11.9% housing yield does **not** contradict this: it
-counts rent the owner collects. Parents buying a house for family
-gatherings collect no rent — they consume that housing service themselves.
-So the model's house line is the right number for *their* situation, and
-the uncounted benefit is exactly the forgone rent (≈5.5% of value per year,
-roughly 0.9–1.0 mln RUB/yr on a 17.5 mln house). `site/scenarios.html`
-states this in plain Russian so the red verdict is not misread as
-"never buy".
+The house is the only asset that is *used*. Rent forgone on a comparable
+property is roughly 5.5% of its value per year — about 550k RUB/yr on a
+10 mln house — and none of it appears in the chart. That is why a house
+trailing the inflation line is not an argument against buying one; it is an
+argument that a house has to earn its keep through use, not appreciation.
 
 ## Fair-price method (`scripts/fairprice.py`)
 

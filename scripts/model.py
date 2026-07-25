@@ -1,4 +1,10 @@
-"""Capital scenarios in real RUB. Pure math in run(); IO in main()."""
+"""Capital scenarios in nominal RUB. Pure math in run(); IO in main().
+
+Deliberately simple, because the audience is a 70+ reader: one capital, one
+average return per asset, no pessimistic/optimistic fan. Uncertainty is
+carried by a risk rank instead of a band, and the inflation line shows what
+merely keeping up with prices would require.
+"""
 import json
 import sys
 from datetime import date
@@ -7,76 +13,80 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 import store
 
-CAPITALS = [10_000_000, 17_500_000, 25_000_000]
-HORIZON = 10
-PATHS = ["pess", "base", "opt"]
 OUT_PATH = Path("site/data/scenarios.json")
 ASSUMPTIONS_PATH = Path("data/assumptions.json")
 HISTORY_PATH = Path("data/history.json")
+PROPERTY_ASSETS = ("buy_now_house", "buy_now_flat")
 
 
-def _real(nominal, infl):
-    return [v / (1 + infl) ** t for t, v in enumerate(nominal)]
-
-
-def _buy_now(c, growth, infl, a):
-    v = c * (1 - a["transaction_cost_rate"])
+def _property_series(capital, rate, horizon, a):
+    """Bought outright: entry costs once, then growth minus yearly upkeep."""
+    v = capital * (1 - a["transaction_cost_rate"])
     out = [v]
-    for _ in range(HORIZON):
-        v = v * (1 + growth) - v * (a["house_maintenance_rate"] + a["property_tax_rate"])
+    upkeep = a["house_maintenance_rate"] + a["property_tax_rate"]
+    for _ in range(horizon):
+        v = v * (1 + rate) - v * upkeep
         out.append(v)
-    return _real(out, infl)
+    return out
 
 
-def _deposit(c, infl, a):
+def _deposit_series(capital, horizon, a):
+    """Rate glides from today's level down to the floor; interest is taxed."""
     d = a["deposit"]
-    v, out = c, [c]
-    for t in range(HORIZON):
+    v, out = capital, [capital]
+    for t in range(horizon):
         rate = max(d["rate_floor"],
                    d["rate_start"] - (d["rate_start"] - d["rate_floor"]) * t / d["decay_years"])
         v += v * rate * (1 - d["interest_tax"])
         out.append(v)
-    return _real(out, infl)
+    return out
 
 
-def _compound(c, r, infl):
-    return _real([c * (1 + r) ** t for t in range(HORIZON + 1)], infl)
+def _compound_series(capital, rate, horizon):
+    return [capital * (1 + rate) ** t for t in range(horizon + 1)]
+
+
+def _avg_rate(series):
+    """Annualised growth actually delivered by a series — the number we show."""
+    years = len(series) - 1
+    return (series[-1] / series[0]) ** (1 / years) - 1
 
 
 def run(a):
-    # pess = bad for the saver: pair pess returns/growth with pess (high) inflation
-    scenarios = {}
-    for cap in CAPITALS:
-        key = str(cap)
-        def put(name, series_by_path):
-            scenarios.setdefault(name, {})[key] = series_by_path
-        put("buy_now_house", {p: _buy_now(cap, a["growth"]["house"][p], a["inflation"][p], a) for p in PATHS})
-        put("buy_now_flat", {p: _buy_now(cap, a["growth"]["flat"][p], a["inflation"][p], a) for p in PATHS})
-        put("deposit", {p: _deposit(cap, a["inflation"][p], a) for p in PATHS})
-        ofz_net = a["ofz_ytm"] * (1 - a["deposit"]["interest_tax"])
-        put("ofz", {p: _compound(cap, ofz_net, a["inflation"][p]) for p in PATHS})
-        for name in ("tmos", "tpay", "gold", "usd", "btc"):
-            put(name, {p: _compound(cap, a["returns"][name][p], a["inflation"][p]) for p in PATHS})
+    capital, horizon = a["capital"], a["horizon_years"]
+    assets = {}
+    for name, cfg in a["assets"].items():
+        if name in PROPERTY_ASSETS:
+            series = _property_series(capital, cfg["rate"], horizon, a)
+        elif name == "deposit":
+            series = _deposit_series(capital, horizon, a)
+        else:
+            series = _compound_series(capital, cfg["rate"], horizon)
+        assets[name] = {"series": [round(v) for v in series],
+                        "avg_rate": round(_avg_rate(series), 4),
+                        "risk": cfg["risk"], "basis_ru": cfg["basis_ru"]}
 
-    mid = str(CAPITALS[1])
-    house3 = scenarios["buy_now_house"][mid]["base"][3]
-    depo3 = scenarios["deposit"][mid]["base"][3]
+    inflation_line = [round(v) for v in _compound_series(capital, a["inflation"], horizon)]
+
+    house3 = assets["buy_now_house"]["series"][3]
+    depo3 = assets["deposit"]["series"][3]
     ratio = depo3 / house3
     if ratio > 1.20:
-        light, reason = "red", ("Депозит за 3 года обгоняет покупку дома более чем на 20% "
-                                "(базовый сценарий) — финансово выгоднее подождать.")
+        light, reason = "red", ("Вклад за 3 года прибавляет заметно больше, чем дорожает дом. "
+                                "Спешить с покупкой незачем — можно спокойно искать свой вариант.")
     elif ratio > 1.05:
-        light, reason = "yellow", ("Депозит за 3 года несколько выгоднее покупки (базовый "
-                                   "сценарий) — торопиться некуда, можно спокойно искать свой дом.")
+        light, reason = "yellow", ("Вклад за 3 года немного обгоняет дом. Торопиться некуда, "
+                                   "но и ждать бесконечно смысла нет.")
     else:
-        light, reason = "green", ("Покупка сопоставима с депозитом или лучше (базовый сценарий) "
-                                  "— если дом нашёлся, откладывать нет финансового смысла.")
+        light, reason = "green", ("Покупка не проигрывает вкладу. Если дом нашёлся — "
+                                  "откладывать нет финансового смысла.")
+
     return {"as_of": date.today().isoformat(),
-            "capital_levels": CAPITALS, "horizon_years": HORIZON,
-            "scenarios": scenarios,
+            "capital": capital, "horizon_years": horizon,
+            "inflation": a["inflation"], "inflation_line": inflation_line,
+            "assets": assets,
             "verdict": {"light": light, "reason_ru": reason,
-                        "numbers": {"deposit_y3_real": round(depo3),
-                                    "buy_house_y3_real": round(house3),
+                        "numbers": {"deposit_y3": depo3, "buy_house_y3": house3,
                                     "ratio": round(ratio, 3)}},
             "assumptions_echo": a}
 

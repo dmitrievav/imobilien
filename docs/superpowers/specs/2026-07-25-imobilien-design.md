@@ -163,32 +163,42 @@ what actually happened.
 
 ## 5. Scenario model (`model.py`)
 
+Revised 2026-07-25 after the reader found the original presentation
+counter-intuitive. Rationale and the superseded design are recorded in
+`notes/methodology.md` ("Model shape").
+
 Inputs (config in one place, documented in `notes/methodology.md`):
 
-- Capital `C` (default 17.5 mln, slider range 10–25 on the site is out of
-  scope — the model precomputes for 10 / 17.5 / 25).
-- Horizon: 1–10 years, evaluated yearly.
-- Inflation path: current official + conservative band.
+- Capital: a single 10 mln RUB.
+- Horizon: 10 years, evaluated yearly.
+- Inflation: one current measured rate, used only for the reference line.
+- Per asset: one average annual return, its basis (measured window or
+  current yield), and a risk rank.
 
-Scenarios, all reported in **real (inflation-adjusted) RUB**:
+Scenarios, all reported in **nominal RUB** so every line rises, which is
+how a non-financial reader expects money to behave. Real-terms honesty is
+carried by a dashed reference line rather than by falling curves:
 
-1. **Buy house now** — house value follows realty benchmark index under
-   three paths (pessimistic / base / optimistic); minus ~1.5%/yr maintenance,
-   property tax, one-off transaction costs. A qualitative "dream dividend"
-   note, never monetized — the emotional value is presented alongside, not
-   inside, the numbers.
-2. **Deposit, buy later** — capital in deposits at current top-10 rate with
-   reinvestment (rate decays toward CBR key-rate forecast), house bought at
-   year N at the projected price path. Shows the timing trade-off explicitly.
-3. **OFZ to horizon** — current yield-to-maturity, coupons reinvested.
-4. **TMOS** and **TPAY** — historical-based expected return bands (wide,
-   honestly labeled as uncertain).
-5. **Gold / USD / BTC** — scenario bands; BTC labeled as high-risk with a
-   deliberately wide band.
+1. **Buy house / buy flat** — entry costs once, then growth net of ~1.5%/yr
+   maintenance and property tax. The house's use value (forgone rent) is
+   never monetized into the line; it is stated in words beside it, so the
+   dream is presented alongside the numbers, not inside them.
+2. **Deposit** — glides from today's measured rate to an assumed floor,
+   interest taxed; the table shows the average the path actually delivers.
+3. **OFZ** — current yield to maturity (contractual if held to maturity).
+4. **TMOS / TPAY** — long-run measured index returns (MCFTR, RGBITR).
+5. **Gold / USD** — long-run measured CBR series. BTC is excluded: no long
+   RUB history is available from a free source, so no honest average exists.
+6. **Inflation line** — what the capital must reach merely to keep up.
 
-Output: `site/data/scenarios.json` — for each scenario and capital level,
-median and band values per year, plus the input assumptions echoed with
-their as-of dates (so the site can show "данные от 25.07.2026").
+Uncertainty is expressed as a **risk rank** (низкий / средний / высокий),
+not a pessimistic/optimistic fan: the reader already knows nothing is
+guaranteed, and the fan cost more comprehension than it bought.
+
+Output: `site/data/scenarios.json` — per asset a nominal series, the
+delivered average rate, the risk rank and the basis string; plus the
+inflation line, the verdict block, the echoed assumptions and the latest
+measured-history point (so the site can show "данные от 25.07.2026").
 
 ## 6. Fair-price assessment (`fairprice.py`)
 

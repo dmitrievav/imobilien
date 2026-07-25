@@ -1,4 +1,5 @@
-import json, sys
+import json
+import sys
 from pathlib import Path
 
 sys.path.insert(0, "scripts")
@@ -7,38 +8,64 @@ import model
 A = json.loads(Path("data/assumptions.json").read_text())
 
 
-def test_shapes():
+def test_shape():
     out = model.run(A)
-    assert out["capital_levels"] == [10_000_000, 17_500_000, 25_000_000]
-    s = out["scenarios"]["deposit"]["17500000"]
-    assert set(s) == {"pess", "base", "opt"} and all(len(v) == 11 for v in s.values())
+    assert out["capital"] == 10_000_000
+    assert len(out["inflation_line"]) == 11
+    assert set(out["assets"]) == set(A["assets"])
+    for name, block in out["assets"].items():
+        assert len(block["series"]) == 11, name
+        assert block["risk"] in ("низкий", "средний", "высокий"), name
+        assert block["basis_ru"], name
 
 
-def test_year_zero_costs():
+def test_nominal_not_inflation_adjusted():
+    """Every asset with a positive rate must grow in the numbers we display."""
     out = model.run(A)
-    # buy_now starts capital minus transaction costs; deposit starts at full capital
-    assert out["scenarios"]["buy_now_house"]["10000000"]["base"][0] == 10_000_000 * 0.97
-    assert out["scenarios"]["deposit"]["10000000"]["base"][0] == 10_000_000
+    for name in ("deposit", "ofz", "tmos", "gold", "usd"):
+        s = out["assets"][name]["series"]
+        assert s[10] > s[0], name
 
 
-def test_real_adjustment():
-    # zero growth, zero costs => real value must shrink by exactly inflation
+def test_property_pays_entry_cost_then_grows_net_of_upkeep():
+    out = model.run(A)
+    s = out["assets"]["buy_now_house"]["series"]
+    assert s[0] == round(10_000_000 * (1 - A["transaction_cost_rate"]))
+    net = A["assets"]["buy_now_house"]["rate"] - (
+        A["house_maintenance_rate"] + A["property_tax_rate"])
+    assert abs(s[1] - s[0] * (1 + net)) <= 1
+
+
+def test_compound_asset_matches_its_rate():
+    out = model.run(A)
+    rate = A["assets"]["gold"]["rate"]
+    assert abs(out["assets"]["gold"]["series"][5] - 10_000_000 * (1 + rate) ** 5) <= 1
+
+
+def test_avg_rate_reports_delivered_growth():
+    out = model.run(A)
+    gold = out["assets"]["gold"]
+    assert abs(gold["avg_rate"] - A["assets"]["gold"]["rate"]) < 0.001
+    # the deposit rate glides down, so its average must sit below today's rate
+    assert out["assets"]["deposit"]["avg_rate"] < A["deposit"]["rate_start"]
+
+
+def test_inflation_line_tracks_inflation():
+    out = model.run(A)
+    assert out["inflation_line"][0] == 10_000_000
+    assert abs(out["inflation_line"][10] - 10_000_000 * (1 + A["inflation"]) ** 10) <= 1
+
+
+def test_verdict_present_and_consistent():
+    out = model.run(A)
+    v = out["verdict"]
+    assert v["light"] in ("green", "yellow", "red")
+    assert v["reason_ru"]
+    assert abs(v["numbers"]["ratio"]
+               - v["numbers"]["deposit_y3"] / v["numbers"]["buy_house_y3"]) < 0.01
+
+
+def test_zero_rates_leave_capital_flat():
     a = json.loads(json.dumps(A))
-    a["growth"]["house"] = {"pess": 0.0, "base": 0.0, "opt": 0.0}
-    a["house_maintenance_rate"] = a["property_tax_rate"] = a["transaction_cost_rate"] = 0.0
-    out = model.run(a)
-    v = out["scenarios"]["buy_now_house"]["10000000"]["base"]
-    assert abs(v[1] - 10_000_000 / (1 + a["inflation"]["base"])) < 1
-
-
-def test_paths_ordered():
-    out = model.run(A)
-    for name, caps in out["scenarios"].items():
-        for series in caps.values():
-            assert series["pess"][5] <= series["base"][5] <= series["opt"][5], name
-
-
-def test_verdict_present():
-    out = model.run(A)
-    assert out["verdict"]["light"] in ("green", "yellow", "red")
-    assert out["verdict"]["reason_ru"]
+    a["assets"]["gold"]["rate"] = 0.0
+    assert model.run(a)["assets"]["gold"]["series"] == [10_000_000] * 11

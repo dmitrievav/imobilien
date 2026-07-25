@@ -1,20 +1,36 @@
 {
   "as_of": "2026-07-25",
-  "inflation": {"pess": 0.09, "base": 0.06, "opt": 0.045},
+  "capital": 10000000,
+  "horizon_years": 10,
+  "inflation": 0.06,
   "deposit": {"rate_start": 0.129, "rate_floor": 0.08, "decay_years": 3, "interest_tax": 0.13},
-  "ofz_ytm": 0.13,
-  "growth": {
-    "house": {"pess": -0.01, "base": 0.05, "opt": 0.10},
-    "flat": {"pess": 0.00, "base": 0.06, "opt": 0.11}
-  },
-  "returns": {
-    "tmos": {"pess": -0.05, "base": 0.12, "opt": 0.20},
-    "tpay": {"pess": 0.06, "base": 0.11, "opt": 0.15},
-    "gold": {"pess": 0.02, "base": 0.09, "opt": 0.16},
-    "usd": {"pess": 0.00, "base": 0.035, "opt": 0.12},
-    "btc": {"pess": -0.40, "base": 0.15, "opt": 0.60}
-  },
   "house_maintenance_rate": 0.015,
   "property_tax_rate": 0.001,
-  "transaction_cost_rate": 0.03
+  "transaction_cost_rate": 0.03,
+  "assets": {
+    "buy_now_house": {
+      "rate": 0.05, "risk": "средний",
+      "basis_ru": "оценка по индексу IRN на июль 2026 (не длинный ряд)"},
+    "buy_now_flat": {
+      "rate": 0.06, "risk": "средний",
+      "basis_ru": "оценка по индексу IRN на июль 2026 (не длинный ряд)"},
+    "deposit": {
+      "rate": null, "risk": "низкий",
+      "basis_ru": "ставка сейчас 12,9%, в расчёте снижается к 8%"},
+    "ofz": {
+      "rate": 0.13, "risk": "низкий",
+      "basis_ru": "доходность к погашению сейчас, фиксируется при покупке"},
+    "tpay": {
+      "rate": 0.0903, "risk": "средний",
+      "basis_ru": "индекс ОФЗ RGBITR, среднее за 23 года"},
+    "tmos": {
+      "rate": 0.1325, "risk": "высокий",
+      "basis_ru": "индекс МосБиржи с дивидендами, среднее за 23 года"},
+    "gold": {
+      "rate": 0.1588, "risk": "средний",
+      "basis_ru": "цена ЦБ, среднее за 20 лет"},
+    "usd": {
+      "rate": 0.0546, "risk": "средний",
+      "basis_ru": "курс ЦБ, среднее за 20 лет"}
+  }
 }

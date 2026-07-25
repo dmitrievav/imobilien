@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Сценарии для капитала</title>
+<title>Куда вложить 10 миллионов</title>
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body class="locked">
@@ -16,78 +16,60 @@
   <a href="checklist.html">Как проверить дом</a>
 </nav>
 <main>
-  <h1>Что станет с деньгами за 10 лет</h1>
+  <h1>Куда вложить 10 миллионов</h1>
 
   <div class="explain">
-    <p><strong>Что здесь показано.</strong> Берём одну и ту же сумму и смотрим,
-    во что она превратится, если вложить её разными способами: купить дом,
-    купить квартиру, положить на вклад, купить облигации, золото, доллары и
-    так далее. Каждая линия — один способ.</p>
-    <p><strong>Все суммы — в сегодняшних деньгах.</strong> Это значит, что
-    подорожание жизни уже вычтено. Если линия идёт <em>вверх</em> — деньги
-    растут быстрее, чем дорожает жизнь. Если <em>вниз</em> — медленнее, то
-    есть на эту сумму со временем можно будет купить меньше, чем сегодня.</p>
+    <p>Берём 10 миллионов рублей и смотрим, во что они превратятся, если
+    вложить их разными способами. Считаем по средней доходности за много
+    лет назад: предполагаем, что дальше будет примерно как было.</p>
+    <p><strong>Серая пунктирная линия — это цены в магазине.</strong> Всё,
+    что выше неё, обгоняет подорожание жизни. Всё, что ниже, — отстаёт.</p>
   </div>
 
-  <p id="capitals"></p>
-  <canvas id="chart" height="220" aria-label="График: во что превращается капитал за 10 лет"></canvas>
-  <p class="hint">Линий много — нажмите на любое название над графиком,
-  чтобы убрать эту линию и смотреть только на нужные.</p>
+  <canvas id="chart" height="230" aria-label="График: во что превращаются 10 миллионов за 10 лет"></canvas>
+  <p class="hint">Нажмите на название над графиком, чтобы убрать лишнюю линию.</p>
 
-  <h2>Сколько это будет в деньгах</h2>
+  <h2>То же самое в цифрах</h2>
   <div class="scroll"><table id="tbl"></table></div>
-  <p class="hint">«Если не повезёт» — высокая инфляция и слабый рынок.
-  «Если повезёт» — наоборот. Это не предсказание, а границы разумного:
-  правда обычно оказывается где-то между ними.</p>
+  <p class="hint" id="inflnote"></p>
 
   <div class="explain">
-    <p><strong>Почему у дома линия идёт вниз, а у вклада вверх?</strong>
-    Вклад платит проценты. Дом процентов не платит: он дорожает примерно
-    так же, как дорожает жизнь, а вот содержать его нужно каждый год
-    (ремонт, налог, участок — мы считаем около 1,5% от стоимости в год).
-    Поэтому «в деньгах» дом проигрывает вкладу, пока ставки такие высокие.</p>
-    <p><strong>Но дом даёт то, чего не даёт вклад — им можно
-    пользоваться.</strong> Такой дом, если сдавать его, приносил бы
-    примерно <span id="usevalue">—</span> в год. Этой пользой вы
-    пользуетесь сами: собираетесь всей семьёй, живёте летом. В таблице
-    этого нет, и именно поэтому «минус» у дома не означает «покупать
-    нельзя». Он означает: дом должен оправдываться пользой и радостью, а
-    не ростом цены.</p>
+    <p><strong>Про риск.</strong> Гарантий не даёт никто, поэтому вместо
+    обещаний — честная оценка. <span class="badge risk-low">низкий</span> —
+    деньги почти наверняка на месте. <span class="badge risk-mid">средний</span> —
+    может просесть на пару лет, но обычно отыгрывает.
+    <span class="badge risk-high">высокий</span> — может упасть вдвое и
+    надолго. Чем выше доходность, тем выше риск: это не совпадение.</p>
+    <p>Вклады застрахованы государством только до 1,4 млн ₽ в одном банке —
+    10 миллионов нужно раскладывать по разным банкам.</p>
   </div>
 
   <div class="explain">
-    <p><strong>«Но доллар и золото ведь всегда растут — почему доллар на
-    графике падает?»</strong> Потому что здесь всё пересчитано в сегодняшние
-    деньги. Доллар в рублях действительно дорожает — но и в магазине всё
-    дорожает, и вопрос только в том, что быстрее.</p>
-    <p>Вот что было на самом деле, по данным Банка России:</p>
+    <p><strong>Откуда взяты средние.</strong> Это не прогноз, а измеренное
+    прошлое: по акциям и облигациям — индексы Московской биржи за 23 года,
+    по золоту и доллару — данные Банка России за 20 лет. Вот они:</p>
     <div class="scroll"><table id="history"></table></div>
-    <p>Доллар растёт <em>рывками</em> — 1998, 2014, 2022. Между рывками он
-    отстаёт от подорожания жизни, а наличные доллары ещё и не платят
-    процентов. Поэтому доллар — это страховка от резкого обвала рубля, а не
-    способ приумножить деньги. С золотом ваша интуиция полностью
-    подтверждается: оно обгоняло инфляцию с большим запасом, и на нашем
-    графике его линия идёт вверх.</p>
+    <p>Видно, что доллар за последние 5–10 лет рос медленнее, чем дорожала
+    жизнь: он спасает от резкого обвала рубля, но не приумножает. Золото,
+    наоборот, обгоняло инфляцию во все периоды.</p>
+    <p class="hint">По дому и квартире длинного ряда нет: цифры взяты из
+    индекса IRN на июль 2026 — это самое слабое место расчёта.
+    Биткойн не показан: длинной истории в рублях нет, а за последний год
+    он подешевел почти вдвое.</p>
   </div>
-
-  <h2>Из каких цифр это посчитано</h2>
-  <div class="scroll"><table id="assumptions"></table></div>
-  <p class="hint">Эти цифры можно и нужно спорить — от них зависит весь
-  расчёт. Самая ненадёжная из них — рост цен на дома.</p>
 
   <p class="asof" id="asof"></p>
 </main>
 <script src="assets/chart.umd.js"></script>
 <script src="assets/gate.js"></script>
 <script>
-const NAMES = {buy_now_house: "Купить дом сейчас", buy_now_flat: "Купить квартиру сейчас",
-  deposit: "Депозит", ofz: "ОФЗ", tmos: "Фонд акций (TMOS)", tpay: "Фонд облигаций (TPAY)",
-  gold: "Золото", usd: "Доллар", btc: "Биткойн"};
+const NAMES = {buy_now_house: "Купить дом", buy_now_flat: "Купить квартиру",
+  deposit: "Вклад в банке", ofz: "Облигации ОФЗ", tpay: "Фонд облигаций (TPAY)",
+  tmos: "Фонд акций (TMOS)", gold: "Золото", usd: "Доллары наличными"};
 const COLORS = {buy_now_house: "#2a6b4f", buy_now_flat: "#67a487", deposit: "#1f6fb2",
-  ofz: "#7db3dd", tmos: "#c0392b", tpay: "#d98880", gold: "#d99a00", usd: "#888", btc: "#8e44ad"};
-let chart, data, capital;
+  ofz: "#7db3dd", tpay: "#d98880", tmos: "#c0392b", gold: "#d99a00", usd: "#888"};
+const RISK_CLASS = {"низкий": "risk-low", "средний": "risk-mid", "высокий": "risk-high"};
 
-// 1 год / 2–4 года / 5+ лет — the page is read by 70+ parents, "1 лет" jars.
 function yearLabel(y) {
   if (y === 0) return "сейчас";
   const last = y % 10, tens = y % 100;
@@ -95,83 +77,60 @@ function yearLabel(y) {
   if (last >= 2 && last <= 4 && (tens < 12 || tens > 14)) return y + " года";
   return y + " лет";
 }
+const mln = (x) => (x / 1e6).toFixed(1).replace(".", ",") + " млн";
+const pct = (x) => (x * 100).toFixed(1).replace(".", ",") + "%";
 
-function render() {
-  const fmt = (x) => (x / 1e6).toFixed(1).replace(".", ",");
-  const ds = Object.keys(NAMES).map(k => ({
-    label: NAMES[k], data: data.scenarios[k][capital].base,
-    borderColor: COLORS[k], fill: false, tension: .2 }));
-  if (chart) chart.destroy();
-  chart = new Chart(document.getElementById("chart"), {
+gateReady.then(async () => {
+  const data = await fetch("data/scenarios.json").then(r => r.json());
+  const years = data.inflation_line.map((_, i) => i);
+
+  const datasets = Object.keys(NAMES).map(k => ({
+    label: NAMES[k], data: data.assets[k].series,
+    borderColor: COLORS[k], borderWidth: 3, fill: false, tension: .2, pointRadius: 0 }));
+  datasets.push({ label: "Цены в магазине", data: data.inflation_line,
+    borderColor: "#999", borderWidth: 2, borderDash: [7, 5], fill: false,
+    tension: .2, pointRadius: 0 });
+
+  new Chart(document.getElementById("chart"), {
     type: "line",
-    data: { labels: [...Array(11).keys()].map(yearLabel), datasets: ds },
-    options: { scales: { y: { ticks: { callback: v => fmt(v) + " млн" } } },
-               plugins: { legend: { labels: { font: { size: 16 } } } } }
+    data: { labels: years.map(yearLabel), datasets },
+    options: { scales: { y: { ticks: { callback: v => mln(v) } } },
+               plugins: { legend: { labels: { font: { size: 15 }, boxWidth: 24 } } } }
   });
-  const start = Number(capital);
-  let html = "<tr><th>Куда вложить</th><th>Сейчас</th><th>Через 3 года</th>" +
-             "<th>Через 5 лет</th><th>Через 5 лет: если не повезёт — если повезёт</th></tr>";
-  for (const k of Object.keys(NAMES)) {
-    const s = data.scenarios[k][capital];
-    const diff = s.base[5] - start;
-    const sign = diff >= 0 ? "+" : "−";
-    html += `<tr><td>${NAMES[k]}</td><td>${fmt(start)} млн</td>` +
-            `<td>${fmt(s.base[3])} млн</td>` +
-            `<td>${fmt(s.base[5])} млн <span class="delta">(${sign}${fmt(Math.abs(diff))} млн)</span></td>` +
-            `<td>${fmt(s.pess[5])} — ${fmt(s.opt[5])} млн</td></tr>`;
-  }
-  document.getElementById("tbl").innerHTML = html;
 
-  // Forgone rent is the house's real, uncounted upside — show it in rubles.
-  const RENT_YIELD = 0.055;
-  const rent = start * RENT_YIELD;
-  document.getElementById("usevalue").textContent = rent < 1e6
-    ? Math.round(rent / 1e4) * 10 + " тыс ₽"
-    : fmt(rent) + " млн ₽";
+  // Best outcome first: the reader sees at a glance where the house stands.
+  const order = Object.keys(NAMES).sort(
+    (x, y) => data.assets[y].series[10] - data.assets[x].series[10]);
+  document.getElementById("tbl").innerHTML =
+    "<tr><th>Куда вложить</th><th>Доходность в год</th><th>Риск</th>" +
+    "<th>Через 3 года</th><th>Через 5 лет</th><th>Через 10 лет</th></tr>" +
+    order.map(k => {
+      const b = data.assets[k];
+      return `<tr><td>${NAMES[k]}<br><span class="basis">${b.basis_ru}</span></td>` +
+             `<td>${pct(b.avg_rate)}</td>` +
+             `<td><span class="badge ${RISK_CLASS[b.risk]}">${b.risk}</span></td>` +
+             `<td>${mln(b.series[3])}</td><td>${mln(b.series[5])}</td>` +
+             `<td><strong>${mln(b.series[10])}</strong></td></tr>`;
+    }).join("");
 
-  const a = data.assumptions_echo;
-  const pct = (x) => (x * 100).toFixed(1).replace(".0", "").replace(".", ",") + "%";
+  document.getElementById("inflnote").textContent =
+    "Чтобы просто не отстать от цен, через 10 лет нужно " +
+    mln(data.inflation_line[10]) + " ₽ — всё, что выше, это настоящий прирост.";
 
   const h = data.history_echo;
-  const histEl = document.getElementById("history");
-  if (h && histEl) {
-    const infl = a.inflation.base * 100;
+  if (h) {
+    const infl = data.inflation * 100;
     const row = (label, windows) => windows.map(w =>
       `<tr><td>${label}, ${yearLabel(w.years)}</td>` +
       `<td>${w.cagr_pct.toFixed(1).replace(".", ",")}% в год</td>` +
       `<td>${w.cagr_pct > infl ? "обгонял инфляцию" : "отставал от инфляции"}</td></tr>`).join("");
-    histEl.innerHTML =
+    document.getElementById("history").innerHTML =
       "<tr><th>Что и за какой срок</th><th>Рост в рублях</th><th>Итог</th></tr>" +
       row("Доллар", h.usd) + row("Золото", h.gold_rub_g) +
-      `<tr><td>Для сравнения: подорожание жизни сейчас</td><td>${pct(a.inflation.base)} в год</td><td>—</td></tr>`;
+      `<tr><td>Для сравнения: подорожание жизни</td><td>${pct(data.inflation)} в год</td><td>—</td></tr>`;
   }
-  document.getElementById("assumptions").innerHTML =
-    "<tr><th>Что считаем</th><th>Значение в год</th></tr>" +
-    `<tr><td>Подорожание жизни (инфляция)</td><td>${pct(a.inflation.base)}</td></tr>` +
-    `<tr><td>Ставка по вкладу сейчас</td><td>${pct(a.deposit.rate_start)} (со временем снижается до ${pct(a.deposit.rate_floor)})</td></tr>` +
-    `<tr><td>Налог с процентов по вкладу</td><td>${pct(a.deposit.interest_tax)}</td></tr>` +
-    `<tr><td>Рост цен на дома</td><td>${pct(a.growth.house.base)}</td></tr>` +
-    `<tr><td>Рост цен на квартиры</td><td>${pct(a.growth.flat.base)}</td></tr>` +
-    `<tr><td>Содержание дома (ремонт, участок)</td><td>${pct(a.house_maintenance_rate)} от стоимости</td></tr>` +
-    `<tr><td>Расходы на саму покупку (разово)</td><td>${pct(a.transaction_cost_rate)}</td></tr>`;
-}
 
-gateReady.then(async () => {
-  data = await fetch("data/scenarios.json").then(r => r.json());
-  capital = String(data.capital_levels[1]);
-  const fmtC = (c) => (c / 1e6).toFixed(1).replace(".0", "").replace(".", ",") + " млн";
-  document.getElementById("capitals").innerHTML = "Капитал: " + data.capital_levels.map(c =>
-    `<button data-c="${c}" style="font-size:1em;margin-right:.5rem">${fmtC(c)} ₽</button>`).join("");
-  const buttons = [...document.querySelectorAll("#capitals button")];
-  const setActive = (b) => buttons.forEach(x => x.classList.toggle("active", x === b));
-  buttons.forEach(b => b.addEventListener("click", () => {
-    capital = b.dataset.c;
-    setActive(b);
-    render();
-  }));
-  setActive(buttons.find(b => b.dataset.c === capital));
   document.getElementById("asof").textContent = "Данные от " + data.as_of + ".";
-  render();
 }).catch(() => {});
 </script>
 </body>

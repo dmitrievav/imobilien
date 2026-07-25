@@ -32,8 +32,13 @@ step:
 - `scripts/fetch_*.py` append dated points to `data/*.json` (append-only
   history; sources: CBR, MOEX ISS, CoinGecko; realty benchmarks and
   deposit rates are entered semi-manually).
-- `scripts/model.py` computes capital scenarios (all in inflation-adjusted
-  RUB, three capital levels: 10 / 17.5 / 25 mln) → `site/data/scenarios.json`.
+- `scripts/model.py` computes capital scenarios → `site/data/scenarios.json`:
+  **nominal** RUB, one capital (10 mln), one measured average return per
+  asset, plus a dashed `inflation_line` reference and a per-asset risk rank.
+  Deliberately simple — the audience is a 70+ reader who found real-terms
+  falling lines counter-intuitive. Do not reintroduce real-terms series or a
+  pessimistic/optimistic fan without asking; see `notes/methodology.md`
+  "Model shape".
 - `scripts/add_listing.py` ingests a listing (fields extracted by a Claude
   agent from a listing URL — Cian/Avito block plain scripts, so extraction
   is agent-driven, never automated) + photos; `scripts/fairprice.py`

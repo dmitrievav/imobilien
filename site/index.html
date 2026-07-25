@@ -28,7 +28,7 @@
     вся семья. Красный свет означает не «нельзя покупать», а «спешить
     некуда — можно спокойно искать свой дом и не переплачивать».</p>
   </div>
-  <p><a href="scenarios.html">Подробное сравнение всех способов →</a></p>
+  <p><a href="scenarios.html">Сравнение всех способов вложить деньги →</a></p>
   <p class="asof" id="asof"></p>
 </main>
 <script src="assets/gate.js"></script>
@@ -41,9 +41,10 @@ gateReady.then(async () => {
   el.textContent = v.reason_ru;
   const fmt = (x) => (x / 1e6).toFixed(1).replace(".", ",") + " млн ₽";
   document.getElementById("numbers").innerHTML =
-    `<div><strong>${fmt(v.numbers.buy_house_y3_real)}</strong>дом через 3 года<br>(в сегодняшних деньгах)</div>` +
-    `<div><strong>${fmt(v.numbers.deposit_y3_real)}</strong>депозит через 3 года<br>(в сегодняшних деньгах)</div>`;
-  document.getElementById("asof").textContent = "Данные от " + s.as_of + ". Расчёт для 17,5 млн ₽, базовый сценарий.";
+    `<div><strong>${fmt(v.numbers.buy_house_y3)}</strong>дом через 3 года</div>` +
+    `<div><strong>${fmt(v.numbers.deposit_y3)}</strong>вклад через 3 года</div>`;
+  document.getElementById("asof").textContent =
+    "Данные от " + s.as_of + ". Расчёт для " + fmt(s.capital) + ".";
 }).catch(() => {});
 </script>
 </body>
