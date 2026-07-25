@@ -28,7 +28,7 @@ def test_real_adjustment():
     a["house_maintenance_rate"] = a["property_tax_rate"] = a["transaction_cost_rate"] = 0.0
     out = model.run(a)
     v = out["scenarios"]["buy_now_house"]["10000000"]["base"]
-    assert abs(v[1] - 10_000_000 / 1.07) < 1
+    assert abs(v[1] - 10_000_000 / (1 + a["inflation"]["base"])) < 1
 
 
 def test_paths_ordered():

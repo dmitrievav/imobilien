@@ -1,0 +1,19 @@
+{
+ "points": [
+  {
+   "date": "2026-07-25",
+   "source": "https://www.irn.ru/analitika/ (IRN.RU indices, July 2026 readings)",
+   "podmoskovye_flat_rub_m2": 161832,
+   "podmoskovye_flat_change_pct": 0.6,
+   "moscow_flat_rub_m2": null,
+   "yield_pct_annual": {
+    "housing_moscow": 14.2,
+    "housing_new_moscow": 14.0,
+    "housing_podmoskovye": 11.9,
+    "bank_deposits": 12.9,
+    "inflation": 6.0
+   },
+   "yield_note": "IRN housing yield index includes rental income AND price change; our parents will not rent the house out, so only the price-change part applies to them"
+  }
+ ]
+}

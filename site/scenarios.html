@@ -17,11 +17,49 @@
 </nav>
 <main>
   <h1>Что станет с деньгами за 10 лет</h1>
-  <p>Все суммы — в сегодняшних деньгах (с учётом инфляции), базовый сценарий.</p>
+
+  <div class="explain">
+    <p><strong>Что здесь показано.</strong> Берём одну и ту же сумму и смотрим,
+    во что она превратится, если вложить её разными способами: купить дом,
+    купить квартиру, положить на вклад, купить облигации, золото, доллары и
+    так далее. Каждая линия — один способ.</p>
+    <p><strong>Все суммы — в сегодняшних деньгах.</strong> Это значит, что
+    подорожание жизни уже вычтено. Если линия идёт <em>вверх</em> — деньги
+    растут быстрее, чем дорожает жизнь. Если <em>вниз</em> — медленнее, то
+    есть на эту сумму со временем можно будет купить меньше, чем сегодня.</p>
+  </div>
+
   <p id="capitals"></p>
-  <canvas id="chart" height="220"></canvas>
-  <h2>Через 3 и 5 лет</h2>
-  <table id="tbl"></table>
+  <canvas id="chart" height="220" aria-label="График: во что превращается капитал за 10 лет"></canvas>
+  <p class="hint">Линий много — нажмите на любое название над графиком,
+  чтобы убрать эту линию и смотреть только на нужные.</p>
+
+  <h2>Сколько это будет в деньгах</h2>
+  <div class="scroll"><table id="tbl"></table></div>
+  <p class="hint">«Если не повезёт» — высокая инфляция и слабый рынок.
+  «Если повезёт» — наоборот. Это не предсказание, а границы разумного:
+  правда обычно оказывается где-то между ними.</p>
+
+  <div class="explain">
+    <p><strong>Почему у дома линия идёт вниз, а у вклада вверх?</strong>
+    Вклад платит проценты. Дом процентов не платит: он дорожает примерно
+    так же, как дорожает жизнь, а вот содержать его нужно каждый год
+    (ремонт, налог, участок — мы считаем около 1,5% от стоимости в год).
+    Поэтому «в деньгах» дом проигрывает вкладу, пока ставки такие высокие.</p>
+    <p><strong>Но дом даёт то, чего не даёт вклад — им можно
+    пользоваться.</strong> Такой дом, если сдавать его, приносил бы
+    примерно <span id="usevalue">—</span> в год. Этой пользой вы
+    пользуетесь сами: собираетесь всей семьёй, живёте летом. В таблице
+    этого нет, и именно поэтому «минус» у дома не означает «покупать
+    нельзя». Он означает: дом должен оправдываться пользой и радостью, а
+    не ростом цены.</p>
+  </div>
+
+  <h2>Из каких цифр это посчитано</h2>
+  <div class="scroll"><table id="assumptions"></table></div>
+  <p class="hint">Эти цифры можно и нужно спорить — от них зависит весь
+  расчёт. Самая ненадёжная из них — рост цен на дома.</p>
+
   <p class="asof" id="asof"></p>
 </main>
 <script src="assets/chart.umd.js"></script>
@@ -55,13 +93,38 @@ function render() {
     options: { scales: { y: { ticks: { callback: v => fmt(v) + " млн" } } },
                plugins: { legend: { labels: { font: { size: 16 } } } } }
   });
-  let html = "<tr><th>Вариант</th><th>3 года</th><th>5 лет</th><th>плохой / хороший (5 лет)</th></tr>";
+  const start = Number(capital);
+  let html = "<tr><th>Куда вложить</th><th>Сейчас</th><th>Через 3 года</th>" +
+             "<th>Через 5 лет</th><th>Через 5 лет: если не повезёт — если повезёт</th></tr>";
   for (const k of Object.keys(NAMES)) {
     const s = data.scenarios[k][capital];
-    html += `<tr><td>${NAMES[k]}</td><td>${fmt(s.base[3])} млн</td><td>${fmt(s.base[5])} млн</td>` +
+    const diff = s.base[5] - start;
+    const sign = diff >= 0 ? "+" : "−";
+    html += `<tr><td>${NAMES[k]}</td><td>${fmt(start)} млн</td>` +
+            `<td>${fmt(s.base[3])} млн</td>` +
+            `<td>${fmt(s.base[5])} млн <span class="delta">(${sign}${fmt(Math.abs(diff))} млн)</span></td>` +
             `<td>${fmt(s.pess[5])} — ${fmt(s.opt[5])} млн</td></tr>`;
   }
   document.getElementById("tbl").innerHTML = html;
+
+  // Forgone rent is the house's real, uncounted upside — show it in rubles.
+  const RENT_YIELD = 0.055;
+  const rent = start * RENT_YIELD;
+  document.getElementById("usevalue").textContent = rent < 1e6
+    ? Math.round(rent / 1e4) * 10 + " тыс ₽"
+    : fmt(rent) + " млн ₽";
+
+  const a = data.assumptions_echo;
+  const pct = (x) => (x * 100).toFixed(1).replace(".0", "").replace(".", ",") + "%";
+  document.getElementById("assumptions").innerHTML =
+    "<tr><th>Что считаем</th><th>Значение в год</th></tr>" +
+    `<tr><td>Подорожание жизни (инфляция)</td><td>${pct(a.inflation.base)}</td></tr>` +
+    `<tr><td>Ставка по вкладу сейчас</td><td>${pct(a.deposit.rate_start)} (со временем снижается до ${pct(a.deposit.rate_floor)})</td></tr>` +
+    `<tr><td>Налог с процентов по вкладу</td><td>${pct(a.deposit.interest_tax)}</td></tr>` +
+    `<tr><td>Рост цен на дома</td><td>${pct(a.growth.house.base)}</td></tr>` +
+    `<tr><td>Рост цен на квартиры</td><td>${pct(a.growth.flat.base)}</td></tr>` +
+    `<tr><td>Содержание дома (ремонт, участок)</td><td>${pct(a.house_maintenance_rate)} от стоимости</td></tr>` +
+    `<tr><td>Расходы на саму покупку (разово)</td><td>${pct(a.transaction_cost_rate)}</td></tr>`;
 }
 
 gateReady.then(async () => {

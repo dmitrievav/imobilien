@@ -35,6 +35,12 @@ button.active { background: var(--accent); color: #fff; border-color: var(--acce
 .numbers { display: flex; gap: 2rem; flex-wrap: wrap; }
 .numbers div { text-align: center; }
 .numbers strong { display: block; font-size: 1.5em; }
+.explain { background: #f3f1e8; border-left: 5px solid var(--accent);
+           border-radius: .4rem; padding: .8rem 1.2rem; margin: 1.2rem 0; }
+.explain p { margin: .6rem 0; }
+.hint { color: var(--muted); font-size: .85em; margin: .4rem 0 1.4rem; }
+.delta { color: var(--muted); font-size: .85em; white-space: nowrap; }
+.scroll { overflow-x: auto; }
 table { border-collapse: collapse; width: 100%; }
 td, th { border: 1px solid #ddd; padding: .5rem; text-align: right; }
 th:first-child, td:first-child { text-align: left; }

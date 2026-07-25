@@ -8,19 +8,16 @@ estimate standing in until real data replaces it.
 
 As-of date for the whole file: `2026-07-25`.
 
-- `inflation.pess = 0.10`, `inflation.base = 0.07`, `inflation.opt = 0.05` —
-  rough band around Bank of Russia's own inflation targeting corridor and
-  recent CBR press-release forecasts (see key-rate finding below, which
-  quotes a 2026 CBR inflation forecast of 6.0–7.0%). **[refine]** — replace
-  with the CBR's actual published forecast range from the same press
-  release/MPR once we pull it into `data/cbr.json`.
-- `deposit.rate_start = 0.13` — assumed starting top-10-bank deposit rate.
-  **[refine]** — not yet cross-checked against `cbr.ru` "top-10 banks
-  deposit rate" publication (`data/deposits.json` fetcher is deferred by
-  design; see key-rate finding for why even the key rate itself needs a
-  same-day check). Given the key rate is 14.00–14.25% as of 2026-07-25,
-  13% start looks plausible but slightly low for a fresh deposit; needs a
-  real top-10 read.
+- `inflation.pess = 0.09`, `inflation.base = 0.06`, `inflation.opt = 0.045` —
+  base is now the **measured** IRN.RU July 2026 inflation reading of 6.0%
+  (`data/irn.json`, source `https://www.irn.ru/analitika/`, seen
+  2026-07-25), with a band around it. Anchored, not invented; the band
+  width is still a judgement call. Previous value was an unanchored 7.0%.
+- `deposit.rate_start = 0.129` — the **measured** IRN.RU July 2026 average
+  bank-deposit rate of 12.9% (`data/irn.json`). Replaces the earlier
+  guessed 13%, and independently confirms that guess was close. Still
+  worth a top-10 read from `cbr.ru` if `data/deposits.json` ever gets a
+  fetcher, but no longer a blind estimate.
 - `deposit.rate_floor = 0.08` — assumed long-run real-terms floor once
   rate-cutting cycle ends. **[refine]** — initial estimate, no source yet.
 - `deposit.decay_years = 3` — assumed glide path length from
@@ -35,12 +32,22 @@ As-of date for the whole file: `2026-07-25`.
   **[refine]** — initial estimate; should be replaced with an actual
   MOEX/`rusbonds` OFZ curve read for a representative maturity matching
   the model horizon.
-- `growth.house = {pess: -0.03, base: 0.04, opt: 0.10}` — assumed nominal
-  annual price growth for year-round houses in the district.
-  **[refine]** — initial estimate; not yet anchored to Rosstat IZhS
-  statistics or IRN.RU's Podmoskovye index (irn.ru/analitika).
-- `growth.flat = {pess: -0.02, base: 0.05, opt: 0.10}` — same, for flats.
-  **[refine]** — initial estimate; same refinement path as above.
+- `growth.flat = {pess: 0.00, base: 0.06, opt: 0.11}` — nominal annual
+  **price** growth for flats, derived from IRN.RU's July 2026 Podmoskovye
+  housing *yield* of 11.9%/yr (`data/irn.json`). That index deliberately
+  bundles two things: rental income plus price change. Subtracting an
+  assumed ~5.5% gross rental yield leaves ≈6.4% of price appreciation,
+  rounded to 6%. **[refine]** — the 5.5% rental-yield split is the weak
+  link; replace it with a real Podmoskovye rent-to-price read (IRN has a
+  rent calculator) and the base growth figure follows directly.
+- `growth.house = {pess: -0.01, base: 0.05, opt: 0.10}` — same idea for
+  year-round houses, set 1pp below flats because IRN measures flats and
+  the country-house segment is less liquid and slower to reprice.
+  **[refine]** — **this is still the single most load-bearing unanchored
+  number in the project**: it alone decides whether the house line rises
+  or falls, and no IRN/Rosstat series covers Pushkinsky-district IZhS
+  directly. Treat the house verdict as provisional until it is sourced.
+
 - `returns.tmos = {pess: -0.05, base: 0.12, opt: 0.20}` — expected return
   band for the TMOS (MOEX index) ETF. **[refine]** — wide, honestly
   uncertain band based on general historical MOEX equity behavior, not a
@@ -68,6 +75,23 @@ As-of date for the whole file: `2026-07-25`.
   (agent fee + registration + incidental costs) as a fraction of price.
   **[refine]** — initial estimate, typical Moscow-region ballpark, not
   itemized.
+
+## Why the house line falls in real terms
+
+Not a market observation — arithmetic from the values above. Base case:
+5.0% nominal price growth − 1.5% maintenance − 0.1% property tax = 3.4%
+nominal, against 6.0% inflation ⇒ ≈ **−2.5%/yr in real terms**, plus a
+one-off 3.0% entry cost. The deposit meanwhile nets 12.9% × (1 − 0.13) ≈
+11.2% nominal ⇒ ≈ +5% real at the start, decaying as rates fall.
+
+Crucially, IRN's own 11.9% housing yield does **not** contradict this: it
+counts rent the owner collects. Parents buying a house for family
+gatherings collect no rent — they consume that housing service themselves.
+So the model's house line is the right number for *their* situation, and
+the uncounted benefit is exactly the forgone rent (≈5.5% of value per year,
+roughly 0.9–1.0 mln RUB/yr on a 17.5 mln house). `site/scenarios.html`
+states this in plain Russian so the red verdict is not misread as
+"never buy".
 
 ## Fair-price method (`scripts/fairprice.py`)
 
@@ -187,3 +211,30 @@ more than directional. Given the key rate itself sits at 14.00–14.25% as
 of 2026-07-25 per the finding above, a 13% starting deposit assumption is
 in the right neighborhood but not verified against a specific bank
 product.
+
+## IRN.RU readings (`data/irn.json`, 2026-07-25)
+
+Source: `https://www.irn.ru/analitika/` — chart images with no open API, so
+values are read off the page and recorded with their date.
+
+| Reading | Value |
+| --- | --- |
+| Podmoskovye flats, price index | 161 832 RUB/m² (+0.6%) |
+| Housing yield, Moscow | 14.2%/yr |
+| Housing yield, New Moscow | 14.0%/yr |
+| Housing yield, Podmoskovye | 11.9%/yr |
+| Bank deposits | 12.9%/yr |
+| Inflation | 6.0%/yr |
+
+Two things this buys us:
+
+1. **A validation of our own flat benchmark.** IRN's regional 161 832
+   RUB/m² sits within 1.2% of the 160 000 RUB/m² we derived independently
+   from district comparables — the two methods agree, which is reassuring
+   for the flat verdicts.
+2. **A measured anchor for inflation and deposit rates**, replacing two
+   guesses (see the value-by-value list above).
+
+The yield index bundles rent with appreciation; see "Why the house line
+falls in real terms" for why that does not transfer to an owner-occupied
+family house.
