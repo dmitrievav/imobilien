@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Куда вложить 10 миллионов</title>
-<link rel="stylesheet" href="assets/style.css?v=202607252056">
+<link rel="stylesheet" href="assets/style.css?v=202607252143">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<script src="assets/version.js?v=202607252056"></script>
+<script src="assets/version.js?v=202607252143"></script>
 </head>
 <body class="locked">
 <p id="gate-msg">Личная страница. Откройте её по ссылке из семейного чата.</p>
@@ -34,6 +34,23 @@
   <h2>То же самое в цифрах</h2>
   <div class="scroll"><table id="tbl"></table></div>
   <p class="hint" id="inflnote"></p>
+
+  <div class="explain">
+    <p><strong>Как читать проценты в таблице — они посчитаны по-разному,
+    и это важно.</strong></p>
+    <ul>
+      <li><strong>Вклад.</strong> Ставка сегодня 12,9%, но она снижается.
+      Поэтому первые годы вклад идёт быстро, а потом замедляется.</li>
+      <li><strong>ОФЗ — единственная строка, где будущее известно
+      заранее.</strong> Покупая облигации сегодня, вы фиксируете около 13%
+      годовых до самого погашения. У акций и золота так не бывает: там
+      можно только смотреть на прошлое и надеяться.</li>
+      <li><strong>Дом и квартира показаны уже за вычетом расходов.</strong>
+      Цена растёт на 5–6% в год, но содержание, налог и ремонт съедают
+      около 1,6% ежегодно, плюс 3% уходит на саму сделку. Остальные строки
+      показаны без вычетов — им нечего вычитать.</li>
+    </ul>
+  </div>
 
   <h2>Почему цифры получились такими</h2>
 
@@ -110,15 +127,19 @@
     и надолго; именно это и произошло с акциями и золотом, смотрите таблицу
     выше.</p>
     <p>Вклады застрахованы государством только до 1,4 млн ₽ в одном банке —
-    10 миллионов нужно раскладывать по разным банкам. А по ОФЗ сегодня можно
-    зафиксировать около 13% годовых на много лет вперёд: это заметно выше их
-    же средней за 20 лет и, пожалуй, самая недооценённая строчка в таблице.</p>
+    10 миллионов нужно раскладывать по разным банкам. У ОФЗ такого
+    ограничения нет: это долг государства напрямую.</p>
+    <p><strong>Обратите внимание на строку с акциями.</strong> За 20 лет они
+    дали ровно столько же, сколько обычный вклад, — но с риском провалиться
+    на четверть и сидеть в минусе годами. Это и есть ответ на вопрос
+    «зачем вообще рисковать»: на этом отрезке — незачем. На столетнем
+    горизонте картина другая, но столько мы ждать не будем.</p>
   </div>
 
   <p class="asof" id="asof"></p>
 </main>
-<script src="assets/chart.umd.js?v=202607252056"></script>
-<script src="assets/gate.js?v=202607252056"></script>
+<script src="assets/chart.umd.js?v=202607252143"></script>
+<script src="assets/gate.js?v=202607252143"></script>
 <script>
 const NAMES = {buy_now_house: "Купить дом", buy_now_flat: "Купить квартиру",
   deposit: "Вклад в банке", ofz: "Облигации ОФЗ",
@@ -168,7 +189,7 @@ gateReady.then(async () => {
     order.map(k => {
       const b = data.assets[k];
       return `<tr><td>${NAMES[k]}<br><span class="basis">${b.basis_ru}</span></td>` +
-             `<td>${pct(b.avg_rate)}</td>` +
+             `<td>${b.rate_label_ru || pct(b.avg_rate)}</td>` +
              `<td><span class="badge ${RISK_CLASS[b.risk]}">${b.risk}</span></td>` +
              `<td>${mln(b.series[3])}</td><td>${mln(b.series[5])}</td>` +
              `<td><strong>${mln(b.series[10])}</strong></td></tr>`;

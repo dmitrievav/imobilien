@@ -260,3 +260,34 @@ An earlier section here reported USD and gold CAGRs alone, over windows that
 did not match the equity figures. It has been replaced by "Window
 sensitivity" and "Peaks and drawdowns" above, which cover all four measured
 assets on identical windows. `scripts/fetch_history.py` produces both.
+
+## Reader-reported table defects (round 6)
+
+The reader photographed the comparison table and sent it back without a
+word. Reading it cold surfaced three ways the same column lied while every
+number in it was arithmetically correct:
+
+1. **Two rows showed 7.8% and different three-year sums** (deposit 13.2 mln,
+   stocks 12.5 mln). Cause: the deposit's rate glides 12.9% → 8%, so it is
+   front-loaded; 7.8% was its ten-year geometric average, true but useless
+   as a row label.
+2. **A row labelled 8.1% (OFZ) sat below a row labelled 7.8% (deposit)** at
+   three and five years, for the same reason. It read as an arithmetic bug.
+3. **Property rates were net of upkeep while every other row was gross.**
+   "House 3.4%" against "gold 15.9%" invited a comparison that was never
+   like-for-like — the house figure already had 1.6%/yr of costs removed.
+
+Fixes: `rate_label_ru` now overrides the bare percentage wherever the rate
+is not flat and gross ("12,9% сейчас, потом ниже", "3,4% после расходов"),
+and the page carries a short "how to read the percentages" block.
+
+**OFZ moved back to its current 13% yield to maturity** — reversing the
+round-5 decision to put it on a historical basis. The round-5 reasoning was
+that mixed bases had made a low-risk asset look like equities, which was
+true of the *presentation*, but the underlying economics are not symmetric:
+a bond held to maturity has a contractual future return, while equities and
+gold have only a past. Quoting OFZ at 8.1% hid a real, low-risk, actionable
+13% the family can lock today — a materially better answer to "where do we
+park the money while we look" than the deposit. The 20-year average is kept
+visible in the row's basis line, and `test_ofz_beats_deposit_at_every_horizon`
+pins the corrected ordering so the inversion cannot return silently.

@@ -64,7 +64,10 @@ def run(a):
             series = _compound_series(capital, cfg["rate"], horizon)
         assets[name] = {"series": [round(v) for v in series],
                         "avg_rate": round(_avg_rate(series), 4),
-                        "risk": cfg["risk"], "basis_ru": cfg["basis_ru"]}
+                        "risk": cfg["risk"], "basis_ru": cfg["basis_ru"],
+                        # A flat percentage misleads where the rate is not flat
+                        # (deposit glides down) or not gross (property pays upkeep).
+                        "rate_label_ru": cfg.get("rate_label_ru")}
 
     inflation_line = [round(v) for v in _compound_series(capital, a["inflation"], horizon)]
 

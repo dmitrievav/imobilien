@@ -4,7 +4,7 @@
 // one reload if they differ. Guarded by sessionStorage so a page that
 // already reloaded for a given (stale) build never reloads again, even if
 // the browser keeps re-serving the same cached HTML.
-const BUILD = "202607252056";
+const BUILD = "202607252143";
 window.BUILD = BUILD;  // exposed read/write for manual verification only
 
 (function () {

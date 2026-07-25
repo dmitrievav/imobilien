@@ -69,3 +69,18 @@ def test_zero_rates_leave_capital_flat():
     a = json.loads(json.dumps(A))
     a["assets"]["gold"]["rate"] = 0.0
     assert model.run(a)["assets"]["gold"]["series"] == [10_000_000] * 11
+
+
+def test_rate_label_passthrough_and_default():
+    out = model.run(A)
+    assert out["assets"]["ofz"]["rate_label_ru"] == A["assets"]["ofz"]["rate_label_ru"]
+    # assets whose rate is flat and gross need no override
+    assert out["assets"]["gold"]["rate_label_ru"] is None
+
+
+def test_ofz_beats_deposit_at_every_horizon():
+    """A locked 13% must not be shown trailing a deposit that starts at 12.9%
+    and decays — that inversion was a real reader-reported defect."""
+    out = model.run(A)
+    ofz, dep = out["assets"]["ofz"]["series"], out["assets"]["deposit"]["series"]
+    assert all(o >= d for o, d in zip(ofz[1:], dep[1:]))
