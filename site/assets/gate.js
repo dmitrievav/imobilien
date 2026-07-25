@@ -43,7 +43,7 @@
   };
 
   window.gateReady = (async function () {
-    const params = await fetch("data/gate.json").then((r) => r.json());
+    const params = await fetch("data/gate.json", { cache: "no-store" }).then((r) => r.json());
     const candidate = readFragment() || localStorage.getItem("imobilien-key") || "";
     document.body.classList.add("locked");
     if (!candidate) throw new Error("locked");  // bare visit: neutral placeholder
