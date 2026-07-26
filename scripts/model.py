@@ -2,8 +2,14 @@
 
 Deliberately simple, because the audience is a 70+ reader: one capital, one
 average return per asset, no pessimistic/optimistic fan. Uncertainty is
-carried by a risk rank instead of a band, and the inflation line shows what
-merely keeping up with prices would require.
+carried by a risk rank and by each asset's current distance from its own
+all-time high, not by a band of scenarios.
+
+Two bases sit side by side on purpose. Globally traded asset classes use
+125-year world evidence for their return above inflation, because any
+Russian window is too short and too idiosyncratic to extrapolate. The
+deposit and OFZ use today's actual Russian terms, because those are
+contractual and knowable in advance rather than estimated from history.
 """
 import json
 import sys
@@ -16,18 +22,14 @@ import store
 OUT_PATH = Path("site/data/scenarios.json")
 ASSUMPTIONS_PATH = Path("data/assumptions.json")
 HISTORY_PATH = Path("data/history.json")
-PROPERTY_ASSETS = ("buy_now_house", "buy_now_flat")
 
 
-def _property_series(capital, rate, horizon, a):
-    """Bought outright: entry costs once, then growth minus yearly upkeep."""
-    v = capital * (1 - a["transaction_cost_rate"])
-    out = [v]
-    upkeep = a["house_maintenance_rate"] + a["property_tax_rate"]
-    for _ in range(horizon):
-        v = v * (1 + rate) - v * upkeep
-        out.append(v)
-    return out
+def nominal_rate(cfg, inflation):
+    """A world-evidence asset states its return above inflation; a local
+    instrument states the rate itself."""
+    if cfg.get("real_rate") is not None:
+        return (1 + cfg["real_rate"]) * (1 + inflation) - 1
+    return cfg.get("rate")
 
 
 def _deposit_series(capital, horizon, a):
@@ -53,55 +55,44 @@ def _avg_rate(series):
 
 
 def run(a):
-    capital, horizon = a["capital"], a["horizon_years"]
+    capital, horizon, infl = a["capital"], a["horizon_years"], a["inflation"]
     assets = {}
     for name, cfg in a["assets"].items():
-        if name in PROPERTY_ASSETS:
-            series = _property_series(capital, cfg["rate"], horizon, a)
-        elif name == "deposit":
+        if name == "deposit":
             series = _deposit_series(capital, horizon, a)
         else:
-            series = _compound_series(capital, cfg["rate"], horizon)
+            series = _compound_series(capital, nominal_rate(cfg, infl), horizon)
         assets[name] = {"series": [round(v) for v in series],
                         "avg_rate": round(_avg_rate(series), 4),
                         "risk": cfg["risk"], "basis_ru": cfg["basis_ru"],
-                        # A flat percentage misleads where the rate is not flat
-                        # (deposit glides down) or not gross (property pays upkeep).
+                        # A flat percentage misleads where the rate is not flat.
                         "rate_label_ru": cfg.get("rate_label_ru")}
-
-    inflation_line = [round(v) for v in _compound_series(capital, a["inflation"], horizon)]
-
-    house3 = assets["buy_now_house"]["series"][3]
-    depo3 = assets["deposit"]["series"][3]
-    ratio = depo3 / house3
-    if ratio > 1.20:
-        light, reason = "red", ("Вклад за 3 года прибавляет заметно больше, чем дорожает дом. "
-                                "Спешить с покупкой незачем — можно спокойно искать свой вариант.")
-    elif ratio > 1.05:
-        light, reason = "yellow", ("Вклад за 3 года немного обгоняет дом. Торопиться некуда, "
-                                   "но и ждать бесконечно смысла нет.")
-    else:
-        light, reason = "green", ("Покупка не проигрывает вкладу. Если дом нашёлся — "
-                                  "откладывать нет финансового смысла.")
 
     return {"as_of": date.today().isoformat(),
             "capital": capital, "horizon_years": horizon,
-            "inflation": a["inflation"], "inflation_line": inflation_line,
+            "inflation": infl,
+            "inflation_line": [round(v) for v in _compound_series(capital, infl, horizon)],
             "assets": assets,
-            "verdict": {"light": light, "reason_ru": reason,
-                        "numbers": {"deposit_y3": depo3, "buy_house_y3": house3,
-                                    "ratio": round(ratio, 3)}},
+            "basis_note_ru": a.get("basis_note_ru"),
             "assumptions_echo": a}
+
+
+def attach_drawdowns(out, a, history_point):
+    """How far each asset sits below its own all-time high, straight from the
+    measured series — the one place the site still shows Russian history."""
+    for name, cfg in a["assets"].items():
+        key = cfg.get("history_key")
+        measured = history_point.get(key) if key and history_point else None
+        out["assets"][name]["drawdown_pct"] = measured["peak"]["drawdown_pct"] if measured else None
+    return out
 
 
 def main():
     a = json.loads(ASSUMPTIONS_PATH.read_text())
     out = run(a)
-    # Measured history travels with the forecast so the site can show readers
-    # what these assets actually did, not only what we assume they will do.
     history = store.load(HISTORY_PATH)["points"]
     if history:
-        out["history_echo"] = history[-1]
+        attach_drawdowns(out, a, history[-1])
     store.atomic_write(OUT_PATH, out)
     print(f"wrote {OUT_PATH}")
 

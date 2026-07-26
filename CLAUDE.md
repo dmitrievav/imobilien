@@ -8,17 +8,15 @@ Decision-support project for a family purchase of a house or flat in
 Pushkinsky district, Moscow region (budget 10–25 mln RUB): fair-price
 assessment of concrete listings (segment-aware: dacha / year-round house /
 flat), scenario comparison of the capital against alternatives
-(deposits, OFZ, TMOS/TPAY, gold, currency, crypto), and a simple static
-site that presents the conclusion to elderly (70+) parents.
+(deposits, OFZ, stocks, gold, currency), and a simple static site that
+presents the conclusion to elderly (70+) parents.
 
-**Status: implemented, deploy pending.** The pipeline (CBR / MOEX / crypto
-fetchers), the scenario model, the fair-price assessment with the encrypted
-listings journal, and the gated four-page site all work end to end; 37+
-pytest tests are green. What is left is the first public push and the
-GitHub Pages deploy (`.github/workflows/pages.yml`), plus the **[refine]**
-assumptions tracked in `notes/methodology.md`. Photos are supported by
-`add_listing.py` but none have been ingested yet, so the gallery currently
-renders text-only cards.
+**Status: live** at `https://dmitrievav.github.io/imobilien/` (public repo
+`dmitrievav/imobilien`, single squashed commit — never push branch
+`implementation`, its history holds cleartext journal data). Pipeline,
+model, encrypted journal with photos and the gated two-page site all work
+end to end; 66 pytest tests green. Remaining soft spots are the **[refine]**
+assumptions in `notes/methodology.md`.
 
 The authoritative design is
 `docs/superpowers/specs/2026-07-25-imobilien-design.md` — read it before
@@ -33,18 +31,26 @@ step:
   history; sources: CBR, MOEX ISS, CoinGecko; realty benchmarks and
   deposit rates are entered semi-manually).
 - `scripts/model.py` computes capital scenarios → `site/data/scenarios.json`:
-  **nominal** RUB, one capital (10 mln), one measured average return per
-  asset, plus a dashed `inflation_line` reference and a per-asset risk rank.
-  Deliberately simple — the audience is a 70+ reader who found real-terms
-  falling lines counter-intuitive. Do not reintroduce real-terms series or a
-  pessimistic/optimistic fan without asking; see `notes/methodology.md`
-  "Model shape".
+  **nominal** RUB, one capital (10 mln), one average return per asset, plus a
+  dashed `inflation_line` reference, a risk rank and each asset's drawdown
+  from its all-time high. Two bases sit side by side on purpose — globally
+  traded classes (stocks, gold, realty) take their return above inflation
+  from 125-year world statistics, while the deposit and OFZ use today's
+  Russian rates because those are contractual. Deliberately simple: the
+  audience is a 70+ reader. Do not reintroduce real-terms series, a
+  pessimistic/optimistic fan, property upkeep costs, or a Russian-window
+  basis for the world classes without asking; `notes/methodology.md`
+  "Model shape" records why each was removed.
 - `scripts/add_listing.py` ingests a listing (fields extracted by a Claude
   agent from a listing URL — Cian/Avito block plain scripts, so extraction
   is agent-driven, never automated) + photos; `scripts/fairprice.py`
   assigns a fair-price verdict vs. district benchmarks.
-- `site/` is plain HTML + vendored Chart.js, Russian, large fonts, four
-  pages; `site/listings.html` is a card gallery of considered houses.
+- `site/` is plain HTML + vendored Chart.js, Russian, large fonts, TWO
+  pages: `index.html` (the comparison) and `listings.html` (card gallery of
+  considered properties). `scenarios.html` and `checklist.html` were deleted
+  on 2026-07-26 at the reader's request — the checklist survives as
+  `notes/legal-checklist.md`. Keep the page count down: every explanation
+  that is not necessary and sufficient belongs in `notes/`, not on screen.
 - Update cycle: run scripts → review diff → commit → push → Pages
   redeploys. Runs are occasional and manual (user or Claude agent).
 
@@ -108,10 +114,10 @@ Non-negotiable, enforced from the first commit:
 - `python scripts/add_listing.py` — ingest a new listing (agent-supplied JSON).
 - `python scripts/add_photos.py <id> <files...>` — attach photos to a
   listing that already exists in the journal.
-- `python scripts/fetch_history.py` — measure long-run nominal CAGR for
-  USD/RUB and gold from CBR series into `data/history.json`. Run it when an
-  assumption band for those assets is being argued about; `model.py` echoes
-  the latest point into `site/data/scenarios.json` so the site can show
-  measured history next to the forecast. Not part of `update_all.py` —
-  20-year history moves slowly and the request is heavy.
+- `python scripts/fetch_history.py` — measure long-run CAGR and the
+  all-time-high drawdown for stocks (MCFTR), OFZ (RGBITR), gold and USD into
+  `data/history.json`; `model.py` reads the latest point to fill the site's
+  drawdown column. Not part of `update_all.py` — the request is heavy and
+  decades of history move slowly. Pre-1998 CBR quotes are rescaled 1000:1 by
+  `denominate()`; without it a 1997 price reads as an all-time high.
 - `pytest` — model/fair-price math, crypto round-trip and fixed-vector tests.

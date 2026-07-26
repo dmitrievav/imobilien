@@ -76,3 +76,20 @@ def test_cagr_from_measures_from_the_given_date():
          (end - timedelta(days=365 * 5), 2.0), (end, 4.0)]
     r = fetch_history.cagr_from(s, end - timedelta(days=365 * 5))
     assert abs(r["cagr_pct"] - 14.87) < 0.1  # doubling over 5 years
+
+
+def test_denominate_rescales_only_pre_1998():
+    from datetime import date as _d
+    assert fetch_history.denominate((_d(1997, 12, 30), 5960.0)) == (_d(1997, 12, 30), 5.96)
+    assert fetch_history.denominate((_d(1998, 1, 1), 5.96)) == (_d(1998, 1, 1), 5.96)
+    assert fetch_history.denominate((_d(2026, 7, 24), 78.03)) == (_d(2026, 7, 24), 78.03)
+
+
+def test_peak_ignores_pre_denomination_scale():
+    """Without the 1000:1 fix a 1997 price looks like an unbeatable all-time
+    high and every asset shows a ~99% drawdown."""
+    from datetime import date as _d
+    raw = [(_d(1997, 3, 25), 65082.0), (_d(2026, 3, 19), 13407.69), (_d(2026, 7, 24), 10147.63)]
+    p = fetch_history.peak([fetch_history.denominate(x) for x in raw])
+    assert p["ath_date"] == "2026-03-19"
+    assert abs(p["drawdown_pct"] + 24.3) < 0.1

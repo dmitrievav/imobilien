@@ -4,49 +4,124 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Семейный дом — вывод</title>
-<link rel="stylesheet" href="assets/style.css?v=202607252154">
+<title>Куда вложить 10 миллионов</title>
+<link rel="stylesheet" href="assets/style.css?v=202607252211">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<script src="assets/version.js?v=202607252154"></script>
+<script src="assets/version.js?v=202607252211"></script>
 </head>
 <body class="locked">
 <p id="gate-msg">Личная страница. Откройте её по ссылке из семейного чата.</p>
 <nav>
-  <a class="current" href="index.html">Вывод</a>
-  <a href="scenarios.html">Сценарии</a>
+  <a class="current" href="index.html">Куда вложить</a>
   <a href="listings.html">Варианты</a>
-  <a href="checklist.html">Как проверить дом</a>
 </nav>
 <main>
-  <h1>Стоит ли покупать сейчас?</h1>
-  <div id="verdict" class="light">Загрузка…</div>
-  <div class="numbers" id="numbers"></div>
+  <h1>Куда вложить 10 миллионов</h1>
+
   <div class="explain">
-    <p><strong>Как это читать.</strong> Светофор выше — только про деньги:
-    он сравнивает дом с вкладом и ничего не знает про то, зачем дом нужен.
-    Пока ставки по вкладам такие высокие, деньги на вкладе прибавляют
-    быстрее, чем дорожает дом.</p>
-    <p>Но дом даёт то, чего вклад не даёт никогда: место, где собирается
-    вся семья. Красный свет означает не «нельзя покупать», а «спешить
-    некуда — можно спокойно искать свой дом и не переплачивать».</p>
+    <p>Смотрим, во что превратятся 10 миллионов рублей за 10 лет при разных
+    способах вложения.</p>
+    <p><strong>Серая пунктирная линия — цены в магазине.</strong> Всё, что
+    выше неё, обгоняет подорожание жизни; всё, что ниже, — отстаёт.</p>
   </div>
-  <p><a href="scenarios.html">Сравнение всех способов вложить деньги →</a></p>
+
+  <canvas id="chart" height="230" aria-label="График: во что превращаются 10 миллионов за 10 лет"></canvas>
+
+  <h2>То же самое в цифрах</h2>
+  <div class="scroll"><table id="tbl"></table></div>
+  <p class="hint" id="inflnote"></p>
+
+  <h2>Откуда цифры</h2>
+  <div class="explain">
+    <p>Для акций, золота и недвижимости взята <strong>мировая статистика за
+    125 лет</strong>: сколько такие вложения приносили сверх подорожания
+    жизни. Российских данных хватает лет на двадцать, а этого мало — на таком
+    отрезке ответ меняется на противоположный в зависимости от того, с какого
+    года считать.</p>
+    <p>Вклад и ОФЗ — исключение: их доходность известна заранее, поэтому для
+    них взяты сегодняшние российские ставки, а не история.</p>
+    <p><strong>Просадка</strong> показывает, насколько актив сейчас дешевле
+    своего рекорда, по российским данным за 23 года. Это ответ на вопрос
+    «сейчас дорого или дёшево».</p>
+    <p class="hint">Проценты — до налогов и без учёта расходов на содержание.
+    Источники мировых цифр: Dimson, Marsh, Staunton (акции, облигации,
+    золото); Shiller, Jordà и др. (жильё).</p>
+  </div>
+
+  <h2>Про риск</h2>
+  <div class="explain">
+    <p><span class="badge risk-low">низкий</span> — деньги почти наверняка на
+    месте. <span class="badge risk-mid">средний</span> — может просесть на
+    пару лет. <span class="badge risk-high">высокий</span> — может упасть на
+    четверть и надолго; в колонке «ниже рекорда» видно, что именно это сейчас
+    и произошло с акциями и золотом.</p>
+    <p>Вклады застрахованы государством только до 1,4 млн ₽ в одном банке, так
+    что 10 миллионов пришлось бы раскладывать по разным банкам. У ОФЗ такого
+    ограничения нет.</p>
+  </div>
+
   <p class="asof" id="asof"></p>
 </main>
-<script src="assets/gate.js?v=202607252154"></script>
+<script src="assets/chart.umd.js?v=202607252211"></script>
+<script src="assets/gate.js?v=202607252211"></script>
 <script>
+const NAMES = {realty: "Недвижимость", deposit: "Вклад в банке",
+  ofz: "Облигации ОФЗ", tmos: "Фонд акций (TMOS)", gold: "Золото",
+  usd: "Доллары наличными"};
+const COLORS = {realty: "#2a6b4f", deposit: "#1f6fb2", ofz: "#7db3dd",
+  tmos: "#c0392b", gold: "#d99a00", usd: "#888"};
+const RISK_CLASS = {"низкий": "risk-low", "средний": "risk-mid", "высокий": "risk-high"};
+
+function yearLabel(y) {
+  if (y === 0) return "сейчас";
+  const last = y % 10, tens = y % 100;
+  if (last === 1 && tens !== 11) return y + " год";
+  if (last >= 2 && last <= 4 && (tens < 12 || tens > 14)) return y + " года";
+  return y + " лет";
+}
+const mln = (x) => (x / 1e6).toFixed(1).replace(".", ",") + " млн";
+const pct = (x) => (x * 100).toFixed(1).replace(".", ",") + "%";
+
 gateReady.then(async () => {
-  const s = await fetch("data/scenarios.json", { cache: "no-store" }).then(r => r.json());
-  const v = s.verdict;
-  const el = document.getElementById("verdict");
-  el.classList.add(v.light);
-  el.textContent = v.reason_ru;
-  const fmt = (x) => (x / 1e6).toFixed(1).replace(".", ",") + " млн ₽";
-  document.getElementById("numbers").innerHTML =
-    `<div><strong>${fmt(v.numbers.buy_house_y3)}</strong>дом через 3 года</div>` +
-    `<div><strong>${fmt(v.numbers.deposit_y3)}</strong>вклад через 3 года</div>`;
-  document.getElementById("asof").textContent =
-    "Данные от " + s.as_of + ". Расчёт для " + fmt(s.capital) + ".";
+  const data = await fetch("data/scenarios.json", {cache: "no-store"}).then(r => r.json());
+
+  const datasets = Object.keys(NAMES).map(k => ({
+    label: NAMES[k], data: data.assets[k].series,
+    borderColor: COLORS[k], borderWidth: 3, fill: false, tension: .2, pointRadius: 0 }));
+  datasets.push({ label: "Цены в магазине", data: data.inflation_line,
+    borderColor: "#999", borderWidth: 2, borderDash: [7, 5], fill: false,
+    tension: .2, pointRadius: 0 });
+
+  new Chart(document.getElementById("chart"), {
+    type: "line",
+    data: { labels: data.inflation_line.map((_, i) => yearLabel(i)), datasets },
+    options: { scales: { y: { ticks: { callback: v => mln(v) } } },
+               plugins: { legend: { labels: { font: { size: 15 }, boxWidth: 24 } } } }
+  });
+
+  // Best outcome first, so where property lands is visible at a glance.
+  const order = Object.keys(NAMES).sort(
+    (x, y) => data.assets[y].series[10] - data.assets[x].series[10]);
+  document.getElementById("tbl").innerHTML =
+    "<tr><th>Куда вложить</th><th>Доходность в год</th>" +
+    "<th>Сейчас ниже рекорда</th><th>Риск</th>" +
+    "<th>Через 3 года</th><th>Через 5 лет</th><th>Через 10 лет</th></tr>" +
+    order.map(k => {
+      const b = data.assets[k];
+      const dd = b.drawdown_pct;
+      return `<tr><td>${NAMES[k]}<br><span class="basis">${b.basis_ru}</span></td>` +
+             `<td>${b.rate_label_ru || pct(b.avg_rate)}</td>` +
+             `<td>${dd === null || dd === undefined ? "—"
+                    : (dd > -3 ? "на рекорде" : "на " + Math.abs(dd).toFixed(0) + "%")}</td>` +
+             `<td><span class="badge ${RISK_CLASS[b.risk]}">${b.risk}</span></td>` +
+             `<td>${mln(b.series[3])}</td><td>${mln(b.series[5])}</td>` +
+             `<td><strong>${mln(b.series[10])}</strong></td></tr>`;
+    }).join("");
+
+  document.getElementById("inflnote").textContent =
+    "Чтобы просто не отстать от цен, через 10 лет нужно " +
+    mln(data.inflation_line[10]) + " ₽.";
+  document.getElementById("asof").textContent = "Данные от " + data.as_of + ".";
 }).catch(() => {});
 </script>
 </body>

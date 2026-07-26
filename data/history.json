@@ -1,7 +1,7 @@
 {
  "points": [
   {
-   "date": "2026-07-25",
+   "date": "2026-07-26",
    "source": "cbr.ru (USD R01235, gold Code=1) and iss.moex.com history (MCFTR = MOEX total return incl. dividends, RGBITR = OFZ total return)",
    "note": "nominal RUB; identical windows across assets so the numbers compare",
    "common_window": {
@@ -73,10 +73,10 @@
      }
     ],
     "peak": {
-     "ath_date": "1997-12-30",
-     "ath_value": 5960.0,
+     "ath_date": "2022-03-11",
+     "ath_value": 120.38,
      "now_value": 78.03,
-     "drawdown_pct": -98.69
+     "drawdown_pct": -35.18
     }
    },
    "gold_rub_g": {
@@ -113,10 +113,10 @@
      }
     ],
     "peak": {
-     "ath_date": "1997-05-15",
-     "ath_value": 66076.0,
+     "ath_date": "2026-03-19",
+     "ath_value": 13407.69,
      "now_value": 10147.63,
-     "drawdown_pct": -84.64
+     "drawdown_pct": -24.31
     }
    },
    "stocks_mcftr": {

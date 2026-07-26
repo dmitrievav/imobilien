@@ -4,109 +4,65 @@ Working notes on where every number in the model comes from, so future
 refinement has a paper trail. Anything marked **[refine]** is an initial
 estimate standing in until real data replaces it.
 
-## Model shape (rewritten 2026-07-25, round 4)
+## Model shape (rewritten 2026-07-26, round 8)
 
-The first version showed inflation-adjusted ("real") rubles with a
-pessimistic/optimistic fan across three capital levels. A reader — the
-project's actual audience — reported it as counter-intuitive: lines went
-*down* while everyone knows prices go *up*, and the fan added noise without
-adding information ("и так понятно, что гарантии нет"). Rebuilt to:
+Simplified again at the reader's direction, and this time the basis changed
+rather than just the presentation:
 
-- **Nominal rubles.** Every line rises, which matches intuition. Honesty is
-  preserved by a dashed grey `inflation_line` — what you need just to keep
-  up with prices. Above it is real gain, below it is a real loss. Same
-  information, no counter-intuitive descent.
-- **One capital: 10 mln RUB.** The three-level switcher is gone.
-- **One average return per asset instead of a band**, taken from the
-  longest measured window available, on the explicit assumption that the
-  future resembles the past.
-- **A risk rank** (`низкий` / `средний` / `высокий`) carries the
-  uncertainty the band used to carry, in words a 70+ reader can act on.
+- **World evidence, not a Russian window.** Stocks, gold and property now
+  take their return *above inflation* from 125-year global statistics
+  (Dimson–Marsh–Staunton; Shiller and Jordà et al. for housing) and add our
+  inflation to it. Every Russian window we tried — 5, 10, 15, 20, 23 years —
+  produced a different answer, and two of them inverted the risk premium.
+  A local window cannot support a ten-year extrapolation; the world evidence
+  can, and it is the only honest response to "23 года тоже слишком узко".
+- **Deposit and OFZ keep today's Russian terms.** Their return is
+  contractual and knowable in advance, so history would be the wrong source.
+  `nominal_rate()` encodes the split: `real_rate` means world evidence,
+  `rate` means a stated local rate.
+- **House and flat merged into one `realty` row.** The two estimates were
+  never distinguishable in the data.
+- **No property costs.** Upkeep, property tax and transaction costs are
+  gone, so every row is now gross and directly comparable — this removes the
+  net-vs-gross asymmetry that had made "дом 3,4%" look worse than it was.
+- **Drawdown from the all-time high** is now a table column, computed from
+  the measured Russian series. It is the one place local history still
+  appears, and it answers a question the averages cannot: is this asset
+  expensive right now?
+- **Verdict traffic light removed** along with the page that showed it; the
+  table is the answer.
 
-## `data/assumptions.json` — value by value
+### Site shrunk to two pages
 
-As-of date: `2026-07-25`. Rates are nominal, annual, and — this matters —
-measured over **identical 20-year windows** wherever a series exists.
+`index.html` (the calculator) and `listings.html` (the gallery).
+`scenarios.html` and `checklist.html` were deleted at the reader's request —
+the checklist content survives in `notes/legal-checklist.md`. The page no
+longer replays the chat: the Q&A blocks explaining window sensitivity, the
+gold-vs-stocks argument and the housing-data gap are gone, replaced by one
+"Откуда цифры" section. The reasoning stays here, where it belongs.
 
-- `capital = 10000000`, `horizon_years = 10` — set by the reader.
-- `inflation = 0.06` — measured IRN.RU July 2026 reading (`data/irn.json`).
-  Drives only the reference line.
-- `deposit` — glides from today's measured 12.9% (IRN) to an assumed 8%
-  floor over 3 years, interest taxed at 13% NDFL; the displayed `avg_rate`
-  (7.8%) is what the path actually delivers. **[refine]** — floor and glide
-  are judgement.
-- `assets.tmos.rate = 0.078` — **measured**: MCFTR (MOEX total return incl.
-  dividends), 20 years.
-- `assets.ofz.rate = 0.081` — **measured**: RGBITR (OFZ total return),
-  20 years. Note the live alternative: OFZ bought today yield ≈13% to
-  maturity, far above their own 20-year average — surfaced on the site as a
-  standing note rather than folded into the projection, which stays
-  consistently historical.
-- `assets.gold.rate = 0.159` — **measured**: CBR gold, 20 years. Flagged on
-  the site as the least reliable projection despite being measured (see
-  "Window sensitivity").
-- `assets.usd.rate = 0.055` — **measured**: CBR USD, 20 years. Cash: no
-  interest.
-- `assets.buy_now_flat.rate = 0.06`, `buy_now_house.rate = 0.05` —
-  **[refine]**, unmeasured. IRN blocks scripted access to its index history
-  and no Rosstat series covers Pushkinsky-district IZhS, so these remain
-  estimates derived from IRN's current yield reading net of assumed rent.
-  The site now says outright that "housing lags inflation" is a hypothesis,
-  not a finding: the 5–6% estimate sits inside its own error bar against
-  6% inflation.
-- `house_maintenance_rate = 0.015`, `property_tax_rate = 0.001`,
-  `transaction_cost_rate = 0.03` — **[refine]** estimates. Property is the
-  only asset carrying yearly costs, which is why a 5.0% house compounds at
-  3.4%.
-- `long_run_world` — 125-year global real returns from the literature
-  (Dimson–Marsh–Staunton, UBS Global Investment Returns Yearbook): equities
-  +5.2%, bonds +1.6%, gold +0.8% above inflation. Not our measurement, and
-  not used in the projection — it is the sanity anchor that tells the
-  reader our 20-year Russian window is an outlier.
-- TPAY was dropped as a separate line: it duplicated the OFZ row.
-- Bitcoin stays out: the free CoinGecko tier serves 365 days, over which BTC
-  fell ~47% in RUB. One year is not a long-run average.
+### Resulting figures (2026-07-26)
 
-## Window sensitivity — why the answers keep changing
+| Asset | Rate | Below ATH | 10 years |
+| --- | --- | --- | --- |
+| OFZ | 13% locked | at peak | 33.9 mln |
+| Stocks | 11.5% | −25% | 29.7 mln |
+| Deposit | 12.9% → 8% | — | 21.2 mln |
+| Realty | 7.1% | — | 19.8 mln |
+| Gold | 6.9% | −24% | 19.4 mln |
+| USD cash | 3.4% | −35% | 13.9 mln |
+| (prices) | 6% | | 17.9 mln |
 
-`scripts/fetch_history.py` now measures every asset over the same windows.
-Nominal RUB CAGR as of 2026-07-25:
+Gold drops from 15.3% to 6.9% purely by switching basis — the clearest
+possible illustration of why the window question mattered.
 
-| Asset | 5y | 10y | 15y | 20y |
-| --- | --- | --- | --- | --- |
-| Stocks (MCFTR) | −2.6% | +8.6% | +8.1% | +7.8% |
-| OFZ (RGBITR) | +4.7% | +6.9% | +7.2% | +8.1% |
-| Gold | +18.9% | +14.0% | +13.9% | +15.9% |
-| USD | +1.1% | +1.9% | +7.1% | +5.5% |
+### Denomination bug caught by this change
 
-Three uncomfortable facts this exposes, all of which the site now states
-plainly instead of hiding:
-
-1. **Gold beat stocks over every Russian window.** Real, not an artifact of
-   mismatched windows — but it is an artifact of *this* country and *this*
-   window: gold gains twice over (world price plus ruble depreciation) while
-   Russian equities absorbed 2008 and 2022.
-2. **Bonds matched or beat stocks** over 20 years — an inverted risk
-   premium. Not a law; a symptom of a bad two decades for equities, which
-   are still 25% below their February 2025 peak.
-3. **An earlier version of this file was wrong.** It quoted stocks at
-   13.25%/yr and gold at 15.88%/yr as if comparable. They were not: the
-   stock figure ran from 2003 and swept in a near-tripling during 2003–2005,
-   while gold's ran from 2006. Same-window measurement cut stocks to 7.8%.
-   Mixing windows is how a comparison lies while every individual number
-   stays true.
-
-A fourth was structural: OFZ used to be quoted at its current 13% yield
-against historical averages for everything else, which made a low-risk asset
-look equal to equities. Fixed by putting OFZ on the same historical basis.
-
-## Peaks and drawdowns
-
-`fetch_history.peak()` records each series' all-time high and the current
-distance from it — a cheap read on "is this thing expensive right now".
-As of 2026-07-25: stocks −25.1% (peak 2025-02-25), gold −24.3% (peak
-2026-03-19), OFZ −2.2% (peak 2026-04-23, i.e. at the top because falling
-rates lift bond prices), USD −35.2% (peak 2022-03-11, the panic spike).
+Extending the CBR fetch back to 1997 made every drawdown absurd (gold
+−84.6%, USD −98.7%): the 1998 redenomination means pre-1998 quotes are in
+old rubles, so a 1997 price registered as an unbeatable all-time high.
+`denominate()` now rescales pre-1998 points by 1000, with a test pinning
+both the boundary and the gold case.
 
 ## Fair-price method (`scripts/fairprice.py`)
 

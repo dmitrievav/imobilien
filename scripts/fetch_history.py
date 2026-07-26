@@ -32,8 +32,21 @@ MOEX_URL = ("https://iss.moex.com/iss/history/engines/stock/markets/index"
             "&iss.only=history&history.columns=TRADEDATE,CLOSE&start={offset}")
 
 
+# On 1998-01-01 the ruble was redenominated 1000:1 (USD 30.12.1997 = 5960 old
+# rubles, 01.01.1998 = 5.96 new). CBR serves both eras raw, so an unadjusted
+# series makes 1997 look like an all-time high a thousand times over.
+DENOMINATION_DATE = date(1998, 1, 1)
+DENOMINATION_FACTOR = 1000
+
+
 def _num(s):
     return float(s.replace(",", "."))
+
+
+def denominate(point):
+    """Restate a pre-1998 CBR value in today's rubles."""
+    d, v = point
+    return (d, v / DENOMINATION_FACTOR) if d < DENOMINATION_DATE else (d, v)
 
 
 def _date(s):
@@ -50,14 +63,15 @@ def _get(url):
 def usd_series(start, end):
     root = ET.fromstring(_get(USD_URL.format(start=f"{start:%d/%m/%Y}",
                                              end=f"{end:%d/%m/%Y}")).content)
-    return sorted((_date(r.get("Date")), _num(r.findtext("VunitRate") or r.findtext("Value")))
+    return sorted(denominate((_date(r.get("Date")),
+                              _num(r.findtext("VunitRate") or r.findtext("Value"))))
                   for r in root.iter("Record"))
 
 
 def gold_series(start, end):
     root = ET.fromstring(_get(GOLD_URL.format(start=f"{start:%d/%m/%Y}",
                                               end=f"{end:%d/%m/%Y}")).content)
-    return sorted((_date(r.get("Date")), _num(r.findtext("Sell")))
+    return sorted(denominate((_date(r.get("Date")), _num(r.findtext("Sell"))))
                   for r in root.iter("Record") if r.get("Code") == "1")
 
 
