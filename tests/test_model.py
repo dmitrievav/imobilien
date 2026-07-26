@@ -75,3 +75,41 @@ def test_rate_label_passthrough_and_default():
     out = model.run(A)
     assert out["assets"]["ofz"]["rate_label_ru"] == A["assets"]["ofz"]["rate_label_ru"]
     assert out["assets"]["gold"]["rate_label_ru"] is None
+
+
+def test_world_asset_in_dollars_is_real_plus_us_inflation():
+    """The whole point of the dollar view: a world asset must clear US
+    inflation abroad exactly as it clears ours at home."""
+    out = model.run(A)
+    expected = (1 + A["assets"]["tmos"]["real_rate"]) * (1 + A["us_inflation"]) - 1
+    assert abs(out["assets"]["tmos"]["avg_rate_usd"] - expected) < 0.001
+
+
+def test_dollar_view_starts_at_converted_capital():
+    out = model.run(A)
+    assert out["capital_usd"] == round(A["capital"] / A["usd_rub"])
+    for block in out["assets"].values():
+        assert abs(block["series_usd"][0] - out["capital_usd"]) <= 1
+
+
+def test_local_rate_loses_the_inflation_gap_in_dollars():
+    """13% in rubles is not 13% for someone counting in dollars."""
+    out = model.run(A)
+    ofz = out["assets"]["ofz"]
+    assert ofz["avg_rate"] == 0.13
+    assert ofz["avg_rate_usd"] < ofz["avg_rate"]
+    expected = 1.13 / (1 + model.depreciation(A)) - 1
+    assert abs(ofz["avg_rate_usd"] - expected) < 0.001
+
+
+def test_cash_dollars_are_flat_in_dollars():
+    """Holding dollars must neither gain nor lose when measured in dollars."""
+    out = model.run(A)
+    usd = out["assets"]["usd"]["series_usd"]
+    assert abs(usd[10] / usd[0] - 1) < 0.01
+
+
+def test_dollar_inflation_line_uses_us_inflation():
+    out = model.run(A)
+    line = out["inflation_line_usd"]
+    assert abs(line[10] - out["capital_usd"] * (1 + A["us_inflation"]) ** 10) <= 2

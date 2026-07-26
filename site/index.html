@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Куда вложить 10 миллионов</title>
-<link rel="stylesheet" href="assets/style.css?v=202607252211">
+<link rel="stylesheet" href="assets/style.css?v=202607260738">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<script src="assets/version.js?v=202607252211"></script>
+<script src="assets/version.js?v=202607260738"></script>
 </head>
 <body class="locked">
 <p id="gate-msg">Личная страница. Откройте её по ссылке из семейного чата.</p>
@@ -24,6 +24,11 @@
     <p><strong>Серая пунктирная линия — цены в магазине.</strong> Всё, что
     выше неё, обгоняет подорожание жизни; всё, что ниже, — отстаёт.</p>
   </div>
+
+  <p id="currency">Считать в:
+    <button data-cur="rub" class="active">рублях</button>
+    <button data-cur="usd">долларах</button>
+  </p>
 
   <canvas id="chart" height="230" aria-label="График: во что превращаются 10 миллионов за 10 лет"></canvas>
 
@@ -48,6 +53,30 @@
     золото); Shiller, Jordà и др. (жильё).</p>
   </div>
 
+  <h2>Рубли или доллары</h2>
+  <div class="explain">
+    <p>Переключатель наверху показывает те же деньги с другой стороны. В
+    рублях всё выглядит крупнее просто потому, что рубль дешевеет: в расчёте
+    он слабеет на разницу инфляций — <span id="deprate">—</span> в год.
+    <strong>Это допущение, а не прогноз.</strong> На коротком сроке курс
+    ходит куда резче: в 2022 году доллар за месяцы взлетел вдвое, а потом
+    отдал 35%.</p>
+    <p>Долларовый столбец полезен как проверка: если вложение обгоняет цены
+    и в рублях, и в долларах — рост настоящий, а не следствие слабеющей
+    валюты. Наличные доллары в долларовом виде дают ровно ноль, и это
+    хорошо видно.</p>
+    <p><strong>Про российскую скидку.</strong> Наши активы стоят дешевле
+    мировых — это уже в цифрах, и прогноз для этого не нужен. ОФЗ платят 13%
+    там, где мировые облигации дают около 1,6% сверх инфляции. Дивиденды
+    российских акций за последние 5 лет давали <strong>7,8% в год</strong>
+    против 4,8% в среднем за 23 года — рынок подешевел, а выплаты остались.
+    Это и есть плата за риск: за войну, санкции и непредсказуемость. Если
+    ситуация нормализуется, скидка сожмётся и владелец заработает сверх
+    расчёта. Если нет — премия не достанется никому. Мы намеренно не
+    закладываем восстановление в цифры: это было бы гаданием, а высокие
+    ставки уже показывают, во сколько рынок оценивает эти риски сегодня.</p>
+  </div>
+
   <h2>Про риск</h2>
   <div class="explain">
     <p><span class="badge risk-low">низкий</span> — деньги почти наверняка на
@@ -62,8 +91,8 @@
 
   <p class="asof" id="asof"></p>
 </main>
-<script src="assets/chart.umd.js?v=202607252211"></script>
-<script src="assets/gate.js?v=202607252211"></script>
+<script src="assets/chart.umd.js?v=202607260738"></script>
+<script src="assets/gate.js?v=202607260738"></script>
 <script>
 const NAMES = {realty: "Недвижимость", deposit: "Вклад в банке",
   ofz: "Облигации ОФЗ", tmos: "Фонд акций (TMOS)", gold: "Золото",
@@ -79,49 +108,69 @@ function yearLabel(y) {
   if (last >= 2 && last <= 4 && (tens < 12 || tens > 14)) return y + " года";
   return y + " лет";
 }
-const mln = (x) => (x / 1e6).toFixed(1).replace(".", ",") + " млн";
 const pct = (x) => (x * 100).toFixed(1).replace(".", ",") + "%";
+// Rubles read best in millions; dollars at this size read best in thousands.
+const money = (x, cur) => cur === "usd"
+  ? "$" + Math.round(x / 1000) + " тыс"
+  : (x / 1e6).toFixed(1).replace(".", ",") + " млн ₽";
+const seriesOf = (b, cur) => cur === "usd" ? b.series_usd : b.series;
 
-gateReady.then(async () => {
-  const data = await fetch("data/scenarios.json", {cache: "no-store"}).then(r => r.json());
+let data, chart, cur = "rub";
+
+function render() {
+  const infl = cur === "usd" ? data.inflation_line_usd : data.inflation_line;
 
   const datasets = Object.keys(NAMES).map(k => ({
-    label: NAMES[k], data: data.assets[k].series,
+    label: NAMES[k], data: seriesOf(data.assets[k], cur),
     borderColor: COLORS[k], borderWidth: 3, fill: false, tension: .2, pointRadius: 0 }));
-  datasets.push({ label: "Цены в магазине", data: data.inflation_line,
+  datasets.push({ label: "Цены в магазине", data: infl,
     borderColor: "#999", borderWidth: 2, borderDash: [7, 5], fill: false,
     tension: .2, pointRadius: 0 });
 
-  new Chart(document.getElementById("chart"), {
+  if (chart) chart.destroy();
+  chart = new Chart(document.getElementById("chart"), {
     type: "line",
-    data: { labels: data.inflation_line.map((_, i) => yearLabel(i)), datasets },
-    options: { scales: { y: { ticks: { callback: v => mln(v) } } },
+    data: { labels: infl.map((_, i) => yearLabel(i)), datasets },
+    options: { scales: { y: { ticks: { callback: v => money(v, cur) } } },
                plugins: { legend: { labels: { font: { size: 15 }, boxWidth: 24 } } } }
   });
 
   // Best outcome first, so where property lands is visible at a glance.
   const order = Object.keys(NAMES).sort(
-    (x, y) => data.assets[y].series[10] - data.assets[x].series[10]);
+    (x, y) => seriesOf(data.assets[y], cur)[10] - seriesOf(data.assets[x], cur)[10]);
   document.getElementById("tbl").innerHTML =
     "<tr><th>Куда вложить</th><th>Доходность в год</th>" +
     "<th>Сейчас ниже рекорда</th><th>Риск</th>" +
     "<th>Через 3 года</th><th>Через 5 лет</th><th>Через 10 лет</th></tr>" +
     order.map(k => {
-      const b = data.assets[k];
-      const dd = b.drawdown_pct;
+      const b = data.assets[k], s = seriesOf(b, cur), dd = b.drawdown_pct;
+      // The ruble label ("13% — фиксируется") is false once converted.
+      const rate = cur === "usd" ? pct(b.avg_rate_usd) : (b.rate_label_ru || pct(b.avg_rate));
       return `<tr><td>${NAMES[k]}<br><span class="basis">${b.basis_ru}</span></td>` +
-             `<td>${b.rate_label_ru || pct(b.avg_rate)}</td>` +
+             `<td>${rate}</td>` +
              `<td>${dd === null || dd === undefined ? "—"
                     : (dd > -3 ? "на рекорде" : "на " + Math.abs(dd).toFixed(0) + "%")}</td>` +
              `<td><span class="badge ${RISK_CLASS[b.risk]}">${b.risk}</span></td>` +
-             `<td>${mln(b.series[3])}</td><td>${mln(b.series[5])}</td>` +
-             `<td><strong>${mln(b.series[10])}</strong></td></tr>`;
+             `<td>${money(s[3], cur)}</td><td>${money(s[5], cur)}</td>` +
+             `<td><strong>${money(s[10], cur)}</strong></td></tr>`;
     }).join("");
 
   document.getElementById("inflnote").textContent =
-    "Чтобы просто не отстать от цен, через 10 лет нужно " +
-    mln(data.inflation_line[10]) + " ₽.";
-  document.getElementById("asof").textContent = "Данные от " + data.as_of + ".";
+    "Чтобы просто не отстать от цен, через 10 лет нужно " + money(infl[10], cur) + ".";
+}
+
+gateReady.then(async () => {
+  data = await fetch("data/scenarios.json", {cache: "no-store"}).then(r => r.json());
+  const buttons = [...document.querySelectorAll("#currency button")];
+  buttons.forEach(b => b.addEventListener("click", () => {
+    cur = b.dataset.cur;
+    buttons.forEach(x => x.classList.toggle("active", x === b));
+    render();
+  }));
+  document.getElementById("deprate").textContent = pct(data.depreciation);
+  document.getElementById("asof").textContent =
+    "Данные от " + data.as_of + ". Курс " + data.usd_rub + " ₽ за доллар.";
+  render();
 }).catch(() => {});
 </script>
 </body>

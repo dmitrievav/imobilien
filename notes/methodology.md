@@ -290,3 +290,59 @@ prevent.
 - A 100-year Russian figure does not exist at all: no market, and no
   continuous currency. The 125-year global figures on the page are the only
   honest answer at that horizon.
+
+## Currency: the assumption the ruble view was hiding (round 9)
+
+The reader spotted that world statistics are dollar-denominated while every
+number on the page was in rubles — so the model silently assumed something
+about the exchange rate. It did: **relative purchasing power parity**, that
+the ruble slides by exactly the inflation differential. `depreciation()`
+makes it explicit at (1+6%)/(1+2.5%)−1 = **3.41%/yr**, and `to_usd()`
+divides each series by that path.
+
+The conversion is internally consistent by construction: a world asset
+earning `r` real ends up at `(1+r)(1+US inflation)−1` in dollars and
+`(1+r)(1+RU inflation)−1` in rubles, and cash dollars come out at exactly
+0%/yr in dollars — a test pins that, because if it did not hold, the
+conversion would be wrong somewhere.
+
+What each view hides, and why both are on the page behind one toggle:
+
+- **Rubles** flatter everything. 13% on OFZ becomes 9.3% for someone
+  counting in dollars; the 3.7pp gap is currency slide, not return.
+- **Dollars** are not what the family spends. They will buy a house priced
+  in rubles, so a dollar-denominated gain that a ruble house price outran is
+  no gain at all.
+- Over ten years PPP is a defensible central case. Over one year it is
+  nearly worthless: the ruble doubled against the dollar in months in 2022
+  and has since given back 35% from that peak. The page says so.
+
+## The Russian discount, without forecasting it
+
+The reader also argued Russia is an emerging market whose growth lies ahead,
+currently depressed by war and geopolitics, and that recovery waits on a
+stable peace. Two things are worth separating here.
+
+**What we refuse to model.** "Recovery is coming" is a forecast, and the
+whole direction of this project has been to remove forecasts. Worse, the
+underlying intuition — that a fast-growing economy pays shareholders more —
+is not supported: over the long run emerging markets have *not* outpaced
+developed ones in returns, only in volatility. Economic growth and equity
+returns are different things.
+
+**What is already measured.** The discount does not need forecasting because
+it is visible in today's prices:
+
+- OFZ yield 13% where world bonds return ~1.6% real.
+- Russian equity dividends alone contributed **+7.77 pp/yr over the last 5
+  years** (MCFTR 
+  −2.40%/yr vs IMOEX −10.16%/yr), against **+4.81 pp/yr over 23 years**
+  (13.25% vs 8.44%). Prices fell, payouts did not — that is what "cheap"
+  looks like in a number rather than an opinion.
+- Equities sit 25% below their February 2025 peak.
+
+So the high local rates in the model *are* the risk premium for exactly the
+risks the reader names. If conditions normalise, the discount compresses and
+the holder earns more than the table shows; if they do not, the premium is
+never collected. Adding a recovery premium on top would double-count what
+the market has already priced.

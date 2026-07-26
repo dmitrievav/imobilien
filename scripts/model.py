@@ -54,6 +54,22 @@ def _avg_rate(series):
     return (series[-1] / series[0]) ** (1 / years) - 1
 
 
+def depreciation(a):
+    """Long-run ruble slide against the dollar: the inflation differential.
+
+    Over a decade this is the only defensible path — anything else would be a
+    currency forecast. It is an assumption, not a measurement, and the site
+    says so: short-term the rate swings far more violently.
+    """
+    return (1 + a["inflation"]) / (1 + a["us_inflation"]) - 1
+
+
+def to_usd(series, a):
+    """Same money, seen from outside the ruble."""
+    fx0, d = a["usd_rub"], depreciation(a)
+    return [v / (fx0 * (1 + d) ** t) for t, v in enumerate(series)]
+
+
 def run(a):
     capital, horizon, infl = a["capital"], a["horizon_years"], a["inflation"]
     assets = {}
@@ -62,18 +78,29 @@ def run(a):
             series = _deposit_series(capital, horizon, a)
         else:
             series = _compound_series(capital, nominal_rate(cfg, infl), horizon)
+        usd = to_usd(series, a)
         assets[name] = {"series": [round(v) for v in series],
+                        "series_usd": [round(v) for v in usd],
                         "avg_rate": round(_avg_rate(series), 4),
+                        "avg_rate_usd": round(_avg_rate(usd), 4),
                         "risk": cfg["risk"], "basis_ru": cfg["basis_ru"],
                         # A flat percentage misleads where the rate is not flat.
                         "rate_label_ru": cfg.get("rate_label_ru")}
 
+    infl_line = _compound_series(capital, infl, horizon)
     return {"as_of": date.today().isoformat(),
-            "capital": capital, "horizon_years": horizon,
-            "inflation": infl,
-            "inflation_line": [round(v) for v in _compound_series(capital, infl, horizon)],
+            "capital": capital, "capital_usd": round(capital / a["usd_rub"]),
+            "horizon_years": horizon,
+            "inflation": infl, "us_inflation": a["us_inflation"],
+            "usd_rub": a["usd_rub"], "depreciation": round(depreciation(a), 4),
+            "inflation_line": [round(v) for v in infl_line],
+            # In dollars the bar to clear is US inflation, not ours.
+            "inflation_line_usd": [round(v) for v in
+                                   _compound_series(capital / a["usd_rub"],
+                                                    a["us_inflation"], horizon)],
             "assets": assets,
             "basis_note_ru": a.get("basis_note_ru"),
+            "currency_note_ru": a.get("currency_note_ru"),
             "assumptions_echo": a}
 
 
