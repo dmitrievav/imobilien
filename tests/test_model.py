@@ -62,13 +62,25 @@ def test_inflation_line_tracks_inflation():
     assert abs(out["inflation_line"][10] - 10_000_000 * (1 + A["inflation"]) ** 10) <= 1
 
 
-def test_drawdowns_attach_only_where_history_exists():
+def test_measured_position_attaches_only_where_history_exists():
     out = model.run(A)
-    history_point = {"stocks_mcftr": {"peak": {"drawdown_pct": -25.1}}}
-    model.attach_drawdowns(out, A, history_point)
-    assert out["assets"]["tmos"]["drawdown_pct"] == -25.1
+    history_point = {"stocks_mcftr": {"peak": {"drawdown_pct": -25.1},
+                                      "ma": {"window": 200, "above_ma_pct": -12.8}}}
+    model.attach_measured_position(out, A, history_point)
+    tmos = out["assets"]["tmos"]
+    assert tmos["drawdown_pct"] == -25.1
+    assert tmos["above_ma_pct"] == -12.8
+    assert tmos["ma_window"] == 200
     assert out["assets"]["deposit"]["drawdown_pct"] is None   # no series by nature
-    assert out["assets"]["gold"]["drawdown_pct"] is None      # key absent from this point
+    assert out["assets"]["gold"]["above_ma_pct"] is None      # key absent from this point
+
+
+def test_measured_position_tolerates_a_point_without_ma():
+    """Older history points predate the moving average and must not crash."""
+    out = model.run(A)
+    model.attach_measured_position(out, A, {"stocks_mcftr": {"peak": {"drawdown_pct": -9.0}}})
+    assert out["assets"]["tmos"]["drawdown_pct"] == -9.0
+    assert out["assets"]["tmos"]["above_ma_pct"] is None
 
 
 def test_rate_label_passthrough_and_default():

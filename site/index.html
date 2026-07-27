@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Куда вложить 10 миллионов</title>
-<link rel="stylesheet" href="assets/style.css?v=202607260738">
+<link rel="stylesheet" href="assets/style.css?v=202607271520">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<script src="assets/version.js?v=202607260738"></script>
+<script src="assets/version.js?v=202607271520"></script>
 </head>
 <body class="locked">
 <p id="gate-msg">Личная страница. Откройте её по ссылке из семейного чата.</p>
@@ -45,9 +45,12 @@
     года считать.</p>
     <p>Вклад и ОФЗ — исключение: их доходность известна заранее, поэтому для
     них взяты сегодняшние российские ставки, а не история.</p>
-    <p><strong>Просадка</strong> показывает, насколько актив сейчас дешевле
-    своего рекорда, по российским данным за 23 года. Это ответ на вопрос
-    «сейчас дорого или дёшево».</p>
+    <p><strong>«Дорого или дёшево»</strong> — это сравнение сегодняшней цены
+    со средней за последние 200 торговых дней (примерно десять месяцев), по
+    российским данным. Средняя за год честнее рекорда: рекорд может быть
+    старым и уже ничего не говорить про сегодня. Доллар, например, на 35%
+    ниже своего максимума 2022 года, но стоит ровно на своей средней —
+    дешёвым он только кажется.</p>
     <p class="hint">Проценты — до налогов и без учёта расходов на содержание.
     Источники мировых цифр: Dimson, Marsh, Staunton (акции, облигации,
     золото); Shiller, Jordà и др. (жильё).</p>
@@ -82,8 +85,8 @@
     <p><span class="badge risk-low">низкий</span> — деньги почти наверняка на
     месте. <span class="badge risk-mid">средний</span> — может просесть на
     пару лет. <span class="badge risk-high">высокий</span> — может упасть на
-    четверть и надолго; в колонке «ниже рекорда» видно, что именно это сейчас
-    и произошло с акциями и золотом.</p>
+    четверть и надолго; в колонке «дорого или дёшево» видно, что именно это
+    сейчас и произошло с акциями и золотом.</p>
     <p>Вклады застрахованы государством только до 1,4 млн ₽ в одном банке, так
     что 10 миллионов пришлось бы раскладывать по разным банкам. У ОФЗ такого
     ограничения нет.</p>
@@ -91,8 +94,8 @@
 
   <p class="asof" id="asof"></p>
 </main>
-<script src="assets/chart.umd.js?v=202607260738"></script>
-<script src="assets/gate.js?v=202607260738"></script>
+<script src="assets/chart.umd.js?v=202607271520"></script>
+<script src="assets/gate.js?v=202607271520"></script>
 <script>
 const NAMES = {realty: "Недвижимость", deposit: "Вклад в банке",
   ofz: "Облигации ОФЗ", tmos: "Фонд акций (TMOS)", gold: "Золото",
@@ -114,6 +117,20 @@ const money = (x, cur) => cur === "usd"
   ? "$" + Math.round(x / 1000) + " тыс"
   : (x / 1e6).toFixed(1).replace(".", ",") + " млн ₽";
 const seriesOf = (b, cur) => cur === "usd" ? b.series_usd : b.series;
+
+// Distance from the 200-day average is the reading about *today*; distance
+// from the all-time high is context, and can be years stale.
+function position(b) {
+  const ma = b.above_ma_pct, dd = b.drawdown_pct;
+  if (ma === null || ma === undefined) return "—";
+  const main = Math.abs(ma) < 3 ? "как обычно"
+    : (ma < 0 ? "дешевле обычного на " + Math.abs(ma).toFixed(0) + "%"
+              : "дороже обычного на " + ma.toFixed(0) + "%");
+  const extra = (dd === null || dd === undefined) ? ""
+    : (dd > -3 ? "<br><span class=\"basis\">это её рекорд</span>"
+               : `<br><span class="basis">рекорд был выше на ${Math.abs(dd).toFixed(0)}%</span>`);
+  return main + extra;
+}
 
 let data, chart, cur = "rub";
 
@@ -140,7 +157,7 @@ function render() {
     (x, y) => seriesOf(data.assets[y], cur)[10] - seriesOf(data.assets[x], cur)[10]);
   document.getElementById("tbl").innerHTML =
     "<tr><th>Куда вложить</th><th>Доходность в год</th>" +
-    "<th>Сейчас ниже рекорда</th><th>Риск</th>" +
+    "<th>Сейчас дорого или дёшево</th><th>Риск</th>" +
     "<th>Через 3 года</th><th>Через 5 лет</th><th>Через 10 лет</th></tr>" +
     order.map(k => {
       const b = data.assets[k], s = seriesOf(b, cur), dd = b.drawdown_pct;
@@ -148,8 +165,7 @@ function render() {
       const rate = cur === "usd" ? pct(b.avg_rate_usd) : (b.rate_label_ru || pct(b.avg_rate));
       return `<tr><td>${NAMES[k]}<br><span class="basis">${b.basis_ru}</span></td>` +
              `<td>${rate}</td>` +
-             `<td>${dd === null || dd === undefined ? "—"
-                    : (dd > -3 ? "на рекорде" : "на " + Math.abs(dd).toFixed(0) + "%")}</td>` +
+             `<td>${position(b)}</td>` +
              `<td><span class="badge ${RISK_CLASS[b.risk]}">${b.risk}</span></td>` +
              `<td>${money(s[3], cur)}</td><td>${money(s[5], cur)}</td>` +
              `<td><strong>${money(s[10], cur)}</strong></td></tr>`;

@@ -1,5 +1,5 @@
 {
- "as_of": "2026-07-26",
+ "as_of": "2026-07-27",
  "capital": 10000000,
  "capital_usd": 128156,
  "horizon_years": 10,
@@ -66,7 +66,9 @@
    "risk": "низкий",
    "basis_ru": "доходность к погашению сегодня",
    "rate_label_ru": "13% — фиксируется при покупке",
-   "drawdown_pct": -2.17
+   "drawdown_pct": -2.17,
+   "above_ma_pct": 2.21,
+   "ma_window": 200
   },
   "tmos": {
    "series": [
@@ -100,7 +102,9 @@
    "risk": "высокий",
    "basis_ru": "мир за 125 лет: +5,2% сверх инфляции",
    "rate_label_ru": null,
-   "drawdown_pct": -25.12
+   "drawdown_pct": -25.12,
+   "above_ma_pct": -12.78,
+   "ma_window": 200
   },
   "deposit": {
    "series": [
@@ -134,7 +138,9 @@
    "risk": "низкий",
    "basis_ru": "ставка снижается к 8%, поэтому первые годы идут быстрее",
    "rate_label_ru": "12,9% сейчас, потом ниже",
-   "drawdown_pct": null
+   "drawdown_pct": null,
+   "above_ma_pct": null,
+   "ma_window": null
   },
   "realty": {
    "series": [
@@ -168,7 +174,9 @@
    "risk": "средний",
    "basis_ru": "мир за 125 лет: жильё дорожает на ~1% сверх инфляции",
    "rate_label_ru": null,
-   "drawdown_pct": null
+   "drawdown_pct": null,
+   "above_ma_pct": null,
+   "ma_window": null
   },
   "gold": {
    "series": [
@@ -202,7 +210,9 @@
    "risk": "высокий",
    "basis_ru": "мир за 125 лет: +0,8% сверх инфляции",
    "rate_label_ru": null,
-   "drawdown_pct": -24.31
+   "drawdown_pct": -24.31,
+   "above_ma_pct": -8.82,
+   "ma_window": 200
   },
   "usd": {
    "series": [
@@ -236,7 +246,9 @@
    "risk": "средний",
    "basis_ru": "курс идёт за разницей инфляций, наличные не платят процентов",
    "rate_label_ru": null,
-   "drawdown_pct": -35.18
+   "drawdown_pct": -35.18,
+   "above_ma_pct": 0.57,
+   "ma_window": 200
   }
  },
  "basis_note_ru": "Для мировых классов активов берём доходность сверх инфляции за 125 лет (Dimson-Marsh-Staunton; по жилью — Shiller, Jorda и др.) и прибавляем нашу инфляцию. Для вклада и ОФЗ берём сегодняшние российские ставки: их доходность известна заранее.",

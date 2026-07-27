@@ -104,13 +104,22 @@ def run(a):
             "assumptions_echo": a}
 
 
-def attach_drawdowns(out, a, history_point):
-    """How far each asset sits below its own all-time high, straight from the
-    measured series — the one place the site still shows Russian history."""
+def attach_measured_position(out, a, history_point):
+    """Where each asset stands today, from the measured series — the one place
+    the site still shows Russian history.
+
+    Two readings, because they answer differently: distance from the all-time
+    high can be years stale (the dollar's peak is from 2022), while distance
+    from the 200-day average is about now.
+    """
     for name, cfg in a["assets"].items():
         key = cfg.get("history_key")
         measured = history_point.get(key) if key and history_point else None
-        out["assets"][name]["drawdown_pct"] = measured["peak"]["drawdown_pct"] if measured else None
+        block = out["assets"][name]
+        block["drawdown_pct"] = measured["peak"]["drawdown_pct"] if measured else None
+        ma = measured.get("ma") if measured else None
+        block["above_ma_pct"] = ma["above_ma_pct"] if ma else None
+        block["ma_window"] = ma["window"] if ma else None
     return out
 
 
@@ -119,7 +128,7 @@ def main():
     out = run(a)
     history = store.load(HISTORY_PATH)["points"]
     if history:
-        attach_drawdowns(out, a, history[-1])
+        attach_measured_position(out, a, history[-1])
     store.atomic_write(OUT_PATH, out)
     print(f"wrote {OUT_PATH}")
 

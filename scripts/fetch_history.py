@@ -23,6 +23,9 @@ import store
 DATA_PATH = Path("data/history.json")
 TIMEOUT = 60
 WINDOWS = [5, 10, 15, 20]
+# ~200 trading days is roughly ten months — long enough to ignore noise,
+# short enough that the reference is still about today.
+MA_WINDOW = 200
 PAGE = 100
 USD_URL = ("https://www.cbr.ru/scripts/XML_dynamic.asp"
            "?date_req1={start}&date_req2={end}&VAL_NM_RQ=R01235")
@@ -109,11 +112,38 @@ def peak(series):
             "drawdown_pct": round((now_v / ath_v - 1) * 100, 2)}
 
 
+def moving_average(series, window=MA_WINDOW):
+    """Trailing mean, running-sum so a 7000-point series stays cheap."""
+    out, total = [], 0.0
+    for i, (d, v) in enumerate(series):
+        total += v
+        if i >= window:
+            total -= series[i - window][1]
+        out.append((d, total / min(i + 1, window)))
+    return out
+
+
+def ma_position(series, window=MA_WINDOW):
+    """Where today's price sits against its own trailing average.
+
+    More honest than distance from the all-time high, whose peak can be years
+    stale: the dollar is 35% below a 2022 spike yet sitting exactly on its
+    own average, and only one of those two numbers describes today.
+    """
+    if len(series) < 2:
+        return None
+    ma_d, ma_v = moving_average(series, window)[-1]
+    _, now_v = series[-1]
+    return {"window": window, "ma_value": round(ma_v, 2), "price": round(now_v, 2),
+            "above_ma_pct": round((now_v / ma_v - 1) * 100, 2)}
+
+
 def summarise(series, windows=WINDOWS):
     span = (series[-1][0] - series[0][0]).days / 365.25
     return {"first": series[0][0].isoformat(), "span_years": round(span, 1),
             "cagr": [cagr(series, y) for y in windows if span >= y],
-            "peak": peak(series)}
+            "peak": peak(series),
+            "ma": ma_position(series)}
 
 
 def cagr_from(series, start):

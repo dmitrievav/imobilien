@@ -346,3 +346,42 @@ risks the reader names. If conditions normalise, the discount compresses and
 the holder earns more than the table shows; if they do not, the premium is
 never collected. Adding a recovery premium on top would double-count what
 the market has already priced.
+
+## Moving averages: what they can and cannot do (round 10)
+
+The reader proposed basing forecasts on a 200-day moving average, to escape
+the peaks and drawdowns. Tested rather than argued. Same common window
+(from 2003-02-26), CAGR computed from raw endpoints versus from 200-day
+moving-average endpoints:
+
+| Asset | raw | smoothed | difference |
+| --- | --- | --- | --- |
+| Stocks | 13.25% | 13.91% | +0.66 pp |
+| OFZ | 8.60% | 8.80% | +0.20 pp |
+| Gold | 15.33% | 16.16% | +0.83 pp |
+| USD | 3.94% | 3.91% | −0.03 pp |
+
+**Smoothing does not help the forecast.** Worst case 0.83 pp, against the
+5.5 pp swing that came from moving the window start by three years (7.8% →
+13.3% for equities). The reason is structural: over a long span both
+endpoints get smoothed and the effects nearly cancel — a test pins this on
+synthetic data. Window sensitivity comes from *which years are included*,
+which no amount of averaging can change. And since round 8 the forecasts do
+not use Russian price history at all; they come from 125-year world
+statistics, so there is nothing left to smooth there.
+
+**But it is a better "expensive or cheap right now" gauge than distance from
+the all-time high**, and that is where it now lives:
+
+| Asset | below ATH | vs 200-day average |
+| --- | --- | --- |
+| Stocks | −25.1% | −12.8% |
+| OFZ | −2.2% | +2.2% |
+| Gold | −24.3% | −8.8% |
+| USD | −35.2% | **+0.6%** |
+
+The dollar is the case that settles it. "35% below its record" suggests a
+bargain; the record is a 2022 panic spike four years stale. Against its own
+trailing average the dollar is sitting exactly where it usually sits. Only
+one of those two numbers describes today, so the table now leads with the
+moving-average reading and keeps the ATH figure as a small second line.

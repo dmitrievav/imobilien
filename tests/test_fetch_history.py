@@ -93,3 +93,39 @@ def test_peak_ignores_pre_denomination_scale():
     p = fetch_history.peak([fetch_history.denominate(x) for x in raw])
     assert p["ath_date"] == "2026-03-19"
     assert abs(p["drawdown_pct"] + 24.3) < 0.1
+
+
+def test_moving_average_smooths_and_keeps_length():
+    end = date.today()
+    s = [(end - timedelta(days=n), float(10 + (n % 2) * 10)) for n in range(9, -1, -1)]
+    ma = fetch_history.moving_average(s, window=4)
+    assert len(ma) == len(s)
+    assert ma[0][1] == s[0][1]                      # first point averages itself
+    assert abs(ma[-1][1] - 15.0) < 1e-9             # 10/20 alternating -> 15
+
+
+def test_ma_position_reports_distance_from_its_average():
+    end = date.today()
+    s = [(end - timedelta(days=3), 100.0), (end - timedelta(days=2), 100.0),
+         (end - timedelta(days=1), 100.0), (end, 120.0)]
+    pos = fetch_history.ma_position(s, window=4)
+    assert pos["window"] == 4
+    assert pos["price"] == 120.0
+    assert pos["ma_value"] == 105.0
+    assert abs(pos["above_ma_pct"] - 14.29) < 0.01
+
+
+def test_ma_position_needs_two_points():
+    assert fetch_history.ma_position([(date.today(), 1.0)]) is None
+
+
+def test_smoothing_barely_moves_a_long_run_average():
+    """The reason a moving average cannot fix window sensitivity: over a long
+    span both endpoints get smoothed and the effect nearly cancels."""
+    end = date.today()
+    s = [(end - timedelta(days=n), 100.0 * (1.0003 ** (3000 - n)) * (1 + 0.05 * ((n % 7) - 3)))
+         for n in range(3000, -1, -1)]
+    start = s[0][0] + timedelta(days=100)
+    raw = fetch_history.cagr_from(s, start)["cagr_pct"]
+    smoothed = fetch_history.cagr_from(fetch_history.moving_average(s), start)["cagr_pct"]
+    assert abs(smoothed - raw) < 1.5
