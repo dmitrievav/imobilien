@@ -79,10 +79,10 @@
      "drawdown_pct": -35.18
     },
     "ma": {
-     "window": 200,
-     "ma_value": 77.59,
+     "window": 1000,
+     "ma_value": 82.58,
      "price": 78.03,
-     "above_ma_pct": 0.57
+     "above_ma_pct": -5.51
     }
    },
    "gold_rub_g": {
@@ -125,10 +125,10 @@
      "drawdown_pct": -24.31
     },
     "ma": {
-     "window": 200,
-     "ma_value": 11128.81,
+     "window": 1000,
+     "ma_value": 7319.07,
      "price": 10147.63,
-     "above_ma_pct": -8.82
+     "above_ma_pct": 38.65
     }
    },
    "stocks_mcftr": {
@@ -171,10 +171,10 @@
      "drawdown_pct": -25.12
     },
     "ma": {
-     "window": 200,
-     "ma_value": 7076.74,
+     "window": 1000,
+     "ma_value": 6616.54,
      "price": 6172.49,
-     "above_ma_pct": -12.78
+     "above_ma_pct": -6.71
     }
    },
    "bonds_rgbitr": {
@@ -217,10 +217,10 @@
      "drawdown_pct": -2.17
     },
     "ma": {
-     "window": 200,
-     "ma_value": 752.35,
+     "window": 1000,
+     "ma_value": 641.73,
      "price": 768.97,
-     "above_ma_pct": 2.21
+     "above_ma_pct": 19.83
     }
    }
   }

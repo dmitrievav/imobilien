@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Куда вложить 10 миллионов</title>
-<link rel="stylesheet" href="assets/style.css?v=202607271520">
+<link rel="stylesheet" href="assets/style.css?v=202607271754">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<script src="assets/version.js?v=202607271520"></script>
+<script src="assets/version.js?v=202607271754"></script>
 </head>
 <body class="locked">
 <p id="gate-msg">Личная страница. Откройте её по ссылке из семейного чата.</p>
@@ -46,11 +46,20 @@
     <p>Вклад и ОФЗ — исключение: их доходность известна заранее, поэтому для
     них взяты сегодняшние российские ставки, а не история.</p>
     <p><strong>«Дорого или дёшево»</strong> — это сравнение сегодняшней цены
-    со средней за последние 200 торговых дней (примерно десять месяцев), по
-    российским данным. Средняя за год честнее рекорда: рекорд может быть
-    старым и уже ничего не говорить про сегодня. Доллар, например, на 35%
-    ниже своего максимума 2022 года, но стоит ровно на своей средней —
-    дешёвым он только кажется.</p>
+    со средней за последние <strong>четыре года</strong> (200 недель), по
+    российским данным. Срок выбран под ваш горизонт: деньги вкладываются на
+    3–10 лет, значит и сравнивать надо со средней за годы, а не за месяцы.
+    Проверка на наших же данных показала, что средняя за десять месяцев про
+    десятилетнее решение не говорит почти ничего, а по доллару — вообще
+    ничего.</p>
+    <p>Разница ощутимая. Золото за последний год подешевело, но относительно
+    средней за четыре года стоит <strong>дороже на 39%</strong>: рост был
+    такой, что недавнее падение его почти не задело. А доллар на 35% ниже
+    своего максимума 2022 года — только этот максимум был паническим скачком,
+    и к сегодняшнему дню он отношения не имеет.</p>
+    <p class="hint">У долгой средней есть слабое место: она предполагает, что
+    прежняя «норма» ещё в силе. Если рынок изменился навсегда, возвращаться
+    ему будет некуда.</p>
     <p class="hint">Проценты — до налогов и без учёта расходов на содержание.
     Источники мировых цифр: Dimson, Marsh, Staunton (акции, облигации,
     золото); Shiller, Jordà и др. (жильё).</p>
@@ -94,8 +103,8 @@
 
   <p class="asof" id="asof"></p>
 </main>
-<script src="assets/chart.umd.js?v=202607271520"></script>
-<script src="assets/gate.js?v=202607271520"></script>
+<script src="assets/chart.umd.js?v=202607271754"></script>
+<script src="assets/gate.js?v=202607271754"></script>
 <script>
 const NAMES = {realty: "Недвижимость", deposit: "Вклад в банке",
   ofz: "Облигации ОФЗ", tmos: "Фонд акций (TMOS)", gold: "Золото",
@@ -118,14 +127,14 @@ const money = (x, cur) => cur === "usd"
   : (x / 1e6).toFixed(1).replace(".", ",") + " млн ₽";
 const seriesOf = (b, cur) => cur === "usd" ? b.series_usd : b.series;
 
-// Distance from the 200-day average is the reading about *today*; distance
-// from the all-time high is context, and can be years stale.
+// Distance from the four-year average is the horizon-matched reading;
+// distance from the all-time high is context, and can be years stale.
 function position(b) {
   const ma = b.above_ma_pct, dd = b.drawdown_pct;
   if (ma === null || ma === undefined) return "—";
-  const main = Math.abs(ma) < 3 ? "как обычно"
-    : (ma < 0 ? "дешевле обычного на " + Math.abs(ma).toFixed(0) + "%"
-              : "дороже обычного на " + ma.toFixed(0) + "%");
+  const main = Math.abs(ma) < 3 ? "как в среднем за 4 года"
+    : (ma < 0 ? "дешевле средней на " + Math.abs(ma).toFixed(0) + "%"
+              : "дороже средней на " + ma.toFixed(0) + "%");
   const extra = (dd === null || dd === undefined) ? ""
     : (dd > -3 ? "<br><span class=\"basis\">это её рекорд</span>"
                : `<br><span class="basis">рекорд был выше на ${Math.abs(dd).toFixed(0)}%</span>`);

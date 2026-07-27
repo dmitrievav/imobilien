@@ -67,8 +67,8 @@
    "basis_ru": "доходность к погашению сегодня",
    "rate_label_ru": "13% — фиксируется при покупке",
    "drawdown_pct": -2.17,
-   "above_ma_pct": 2.21,
-   "ma_window": 200
+   "above_ma_pct": 19.83,
+   "ma_window": 1000
   },
   "tmos": {
    "series": [
@@ -103,8 +103,8 @@
    "basis_ru": "мир за 125 лет: +5,2% сверх инфляции",
    "rate_label_ru": null,
    "drawdown_pct": -25.12,
-   "above_ma_pct": -12.78,
-   "ma_window": 200
+   "above_ma_pct": -6.71,
+   "ma_window": 1000
   },
   "deposit": {
    "series": [
@@ -211,8 +211,8 @@
    "basis_ru": "мир за 125 лет: +0,8% сверх инфляции",
    "rate_label_ru": null,
    "drawdown_pct": -24.31,
-   "above_ma_pct": -8.82,
-   "ma_window": 200
+   "above_ma_pct": 38.65,
+   "ma_window": 1000
   },
   "usd": {
    "series": [
@@ -247,8 +247,8 @@
    "basis_ru": "курс идёт за разницей инфляций, наличные не платят процентов",
    "rate_label_ru": null,
    "drawdown_pct": -35.18,
-   "above_ma_pct": 0.57,
-   "ma_window": 200
+   "above_ma_pct": -5.51,
+   "ma_window": 1000
   }
  },
  "basis_note_ru": "Для мировых классов активов берём доходность сверх инфляции за 125 лет (Dimson-Marsh-Staunton; по жилью — Shiller, Jorda и др.) и прибавляем нашу инфляцию. Для вклада и ОФЗ берём сегодняшние российские ставки: их доходность известна заранее.",

@@ -23,9 +23,15 @@ import store
 DATA_PATH = Path("data/history.json")
 TIMEOUT = 60
 WINDOWS = [5, 10, 15, 20]
-# ~200 trading days is roughly ten months — long enough to ignore noise,
-# short enough that the reference is still about today.
-MA_WINDOW = 200
+# The averaging window must match the holding period, not merely smooth noise.
+# Measured on our own series, the correlation between "distance from the
+# average" and the NEXT 3-10 years of returns strengthens sharply with window
+# length (stocks 3y: -0.35 at 200 days vs -0.55 at 200 weeks; the dollar is
+# ~0.0 at 200 days, so a ten-month average says nothing about a ten-year
+# decision). 1000 trading days is ~200 weeks, about four years: inside the
+# 3-10 year horizon and with more independent history behind it than a
+# ten-year window would have. See notes/methodology.md "Choosing the window".
+MA_WINDOW = 1000
 PAGE = 100
 USD_URL = ("https://www.cbr.ru/scripts/XML_dynamic.asp"
            "?date_req1={start}&date_req2={end}&VAL_NM_RQ=R01235")

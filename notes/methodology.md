@@ -385,3 +385,64 @@ bargain; the record is a 2022 panic spike four years stale. Against its own
 trailing average the dollar is sitting exactly where it usually sits. Only
 one of those two numbers describes today, so the table now leads with the
 moving-average reading and keeps the ATH figure as a small second line.
+
+## Choosing the window: match it to the holding period (round 11)
+
+The reader asked whether a 200-*week* average would be better, and how to
+choose the window given a 3–10 year holding period. Answered by measuring,
+on our own series, the correlation between "log distance from the average"
+and the annualised return over the FOLLOWING 3 / 5 / 10 years:
+
+| Asset | window | next 3y | next 5y | next 10y |
+| --- | --- | --- | --- | --- |
+| Stocks | 200 days | −0.35 | −0.31 | −0.47 |
+| | **200 weeks** | **−0.55** | **−0.51** | **−0.83** |
+| | 10 years | −0.62 | −0.78 | −0.82 |
+| OFZ | 200 days | −0.09 | −0.35 | +0.04 |
+| | **200 weeks** | **−0.31** | **−0.71** | +0.01 |
+| | 10 years | −0.32 | −0.73 | −0.40 |
+| Gold | 200 days | −0.30 | −0.26 | −0.14 |
+| | **200 weeks** | **−0.55** | −0.29 | −0.40 |
+| | 10 years | −0.61 | −0.45 | −0.65 |
+| USD | 200 days | **+0.04** | **+0.01** | −0.14 |
+| | **200 weeks** | −0.23 | −0.23 | −0.55 |
+| | 10 years | −0.39 | −0.54 | −0.85 |
+
+The pattern is consistent across all four assets: the longer the averaging
+window, the better the deviation explains multi-year returns. The 200-day
+window is near-useless for a decade-long decision — for the dollar it is
+literally zero.
+
+**Rule adopted: the averaging window should be on the order of the holding
+period.** For 3–10 years that means years, not months. `MA_WINDOW` is now
+1000 trading days ≈ 200 weeks ≈ four years — inside the horizon range, and
+with more independent history behind it than a ten-year window has on a
+23-year series.
+
+### Two honest caveats
+
+1. **The correlations are weaker than the sample sizes suggest.** Those
+   n≈5000 daily observations of a 5-year forward return contain only about
+   four independent 5-year periods in 23 years of data. The *direction* is
+   consistent and matches theory; the magnitudes must not be read as laws.
+2. **A long average assumes the old normal still applies.** Russian equities
+   post-2022 lost their foreign investor base; a four-year average that
+   still remembers 2021 may be a level the market never returns to. Mean
+   reversion presumes the regime did not permanently change.
+
+### What changed on the page
+
+The window switch moves the readings materially, and mostly for the better:
+
+| Asset | 200 days | 200 weeks |
+| --- | --- | --- |
+| Stocks | −12.8% | −6.7% |
+| OFZ | +2.2% | **+19.8%** |
+| Gold | −8.8% | **+38.6%** |
+| USD | +0.6% | −5.5% |
+
+Gold inverts outright: ten months of data call it 9% cheap, four years call
+it **39% expensive**. The 24% pullback from March 2026 barely dents a run
+that large — and that is the reading consistent with the world evidence,
+which expects gold to return barely more than inflation. The short window
+had been hiding exactly the "overbought" case the reader was asking about.

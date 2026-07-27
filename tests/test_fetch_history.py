@@ -129,3 +129,18 @@ def test_smoothing_barely_moves_a_long_run_average():
     raw = fetch_history.cagr_from(s, start)["cagr_pct"]
     smoothed = fetch_history.cagr_from(fetch_history.moving_average(s), start)["cagr_pct"]
     assert abs(smoothed - raw) < 1.5
+
+
+def test_ma_window_matches_a_multi_year_holding_period():
+    """A ten-month average cannot inform a 3-10 year decision; the window is
+    deliberately ~4 years (1000 trading days ≈ 200 weeks)."""
+    assert 750 <= fetch_history.MA_WINDOW <= 1300
+
+
+def test_ma_position_handles_a_series_shorter_than_the_window():
+    end = date.today()
+    s = [(end - timedelta(days=n), 100.0 + n) for n in range(30, -1, -1)]
+    pos = fetch_history.ma_position(s)          # 31 points, window 1000
+    assert pos is not None
+    assert pos["window"] == fetch_history.MA_WINDOW
+    assert pos["price"] == s[-1][1]
