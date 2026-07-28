@@ -446,3 +446,69 @@ it **39% expensive**. The 24% pullback from March 2026 barely dents a run
 that large — and that is the reading consistent with the world evidence,
 which expects gold to return barely more than inflation. The short window
 had been hiding exactly the "overbought" case the reader was asking about.
+
+## Per-listing valuation (round 12)
+
+The gallery used to show a bare "overpriced / fair" label from comparing
+price per m² to a single benchmark. That compared unlike with unlike: a new
+234 m² house with gas, central water and a designer interior was measured
+against an unadjusted district average and came out "+43% overpriced".
+
+`scripts/valuation.py` replaces it with the method appraisers use —
+comparison with adjustments. Base price per m², then corrections for how
+this object differs, then a **range** rather than a point.
+
+Adjustments (all in `data/valuation_factors.json`, so they can be argued
+with rather than dug out of code):
+
+- **Flats:** floor position (first −7%, last −3%), building age band, wall
+  material (panel −5%, brick +3%, monolith +5%), renovation (none −12% …
+  designer +8%), large kitchen +3%, tall ceilings +2%, and a size discount
+  because bigger flats sell for less per metre.
+- **Houses:** gas ±15% (the single biggest factor in the country-house
+  market), central water and sewage +7%, IZhS vs SNT, wall material, age,
+  distance from MKAD in bands, plot size above 10 sotki, renovation, plus
+  banya / terrace / garage.
+
+Every coefficient is a practice-based order of magnitude, not a regression
+on a large sample. The page says so.
+
+### Two guards against fooling ourselves
+
+1. **Damped adjustments when comparables are used.** If the base is the
+   median of nearby listings, those already embed typical renovation and
+   building type, so corrections on top would double-count. The weight drops
+   to 0.5 (`comparable_adjustment_weight`). Without this, L003 came out
+   "undervalued by 14%" purely from counting its euro renovation twice.
+2. **The band widens when the inputs are thin**: ±10% base, +5% with no
+   comparables, +10% when the benchmark itself is a flagged estimate, +2%
+   per missing field, capped at ±30%. `data/realty.json` now marks which
+   benchmarks are measured (flats, a median of real comparables) and which
+   are guesses (houses, dachas).
+
+### What this changed for the three real listings
+
+| | asking | estimate | range | verdict |
+| --- | --- | --- | --- | --- |
+| House, Mogiltsy | 33.5 | 36.0 | 27.0–45.0 (±25%) | inside |
+| Flat, Zapadny | 11.3 | 11.7 | 10.5–12.9 (±10%) | inside |
+| Flat, O'Pushkin | 15.8 | 17.3 | 15.2–19.3 (±12%) | inside |
+
+The house verdict flips from "overpriced" to "inside the range" — but with a
+±25% band, because its base benchmark is unmeasured. That width is the point:
+the honest answer for that house is "we cannot tell precisely", not a
+confident verdict either way. The reprice flag (+116% in two weeks) is
+reported separately, since a suspicious history is a different fact from a
+fair price, and a test pins that independence.
+
+### Gallery presentation
+
+A range bar shows the band with the asking price as a dot on it, coloured by
+verdict, with a grey tick at the estimate. Expanding a card shows the base,
+every adjustment with its reason in Russian, the resulting price per m² next
+to the asking one, and the accuracy band. The status badge now appears only
+when it says something — every card reading "Рассматриваем" was noise.
+
+Chart tooltips also fixed: `interaction: {mode: "index", intersect: false}`,
+so hovering anywhere on a year lists every line, sorted by value. A 70+
+reader should not have to hit a 3-pixel stroke.

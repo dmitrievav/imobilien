@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Куда вложить 10 миллионов</title>
-<link rel="stylesheet" href="assets/style.css?v=202607271754">
+<link rel="stylesheet" href="assets/style.css?v=202607280856">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<script src="assets/version.js?v=202607271754"></script>
+<script src="assets/version.js?v=202607280856"></script>
 </head>
 <body class="locked">
 <p id="gate-msg">Личная страница. Откройте её по ссылке из семейного чата.</p>
@@ -103,8 +103,8 @@
 
   <p class="asof" id="asof"></p>
 </main>
-<script src="assets/chart.umd.js?v=202607271754"></script>
-<script src="assets/gate.js?v=202607271754"></script>
+<script src="assets/chart.umd.js?v=202607280856"></script>
+<script src="assets/gate.js?v=202607280856"></script>
 <script>
 const NAMES = {realty: "Недвижимость", deposit: "Вклад в банке",
   ofz: "Облигации ОФЗ", tmos: "Фонд акций (TMOS)", gold: "Золото",
@@ -157,8 +157,20 @@ function render() {
   chart = new Chart(document.getElementById("chart"), {
     type: "line",
     data: { labels: infl.map((_, i) => yearLabel(i)), datasets },
-    options: { scales: { y: { ticks: { callback: v => money(v, cur) } } },
-               plugins: { legend: { labels: { font: { size: 15 }, boxWidth: 24 } } } }
+    options: {
+      // Hovering anywhere on a year shows every line at once — a 70+ reader
+      // should not have to hit a 3px stroke to read a number.
+      interaction: { mode: "index", intersect: false },
+      scales: { y: { ticks: { callback: v => money(v, cur) } } },
+      plugins: {
+        legend: { labels: { font: { size: 15 }, boxWidth: 24 } },
+        tooltip: {
+          bodyFont: { size: 15 }, titleFont: { size: 15 }, padding: 10,
+          itemSort: (a, b) => b.parsed.y - a.parsed.y,
+          callbacks: { label: (c) => c.dataset.label + ": " + money(c.parsed.y, cur) }
+        }
+      }
+    }
   });
 
   // Best outcome first, so where property lands is visible at a glance.

@@ -41,6 +41,29 @@ button.active { background: var(--accent); color: #fff; border-color: var(--acce
 .hint { color: var(--muted); font-size: .85em; margin: .4rem 0 1.4rem; }
 .delta { color: var(--muted); font-size: .85em; white-space: nowrap; }
 .scroll { overflow-x: auto; }
+
+/* Valuation range: the band, the estimate tick, and where the asking price
+   falls on it — readable at a glance without reading a single number. */
+.rangewrap { margin: .9rem 0 .2rem; }
+.rangebar { position: relative; height: 1.5rem; border-radius: .75rem;
+            background: linear-gradient(90deg, #cfe3d5, #eef3ea, #f3d9d5); }
+.rangebar .fairmark { position: absolute; top: -.25rem; bottom: -.25rem; width: 2px;
+                      background: var(--muted); transform: translateX(-1px); }
+.rangebar .pricemark { position: absolute; top: 50%; width: 1.15rem; height: 1.15rem;
+                       border-radius: 50%; border: 3px solid #fff;
+                       transform: translate(-50%, -50%); background: var(--green); }
+.rangebar .pricemark.above { background: var(--red); }
+.rangebar .pricemark.below { background: #1f6fb2; }
+.rangeends { display: flex; justify-content: space-between;
+             font-size: .75em; color: var(--muted); }
+.rangelegend { margin: .35rem 0 0; font-size: .9em; }
+.card h3 { font-size: 1em; margin: 1rem 0 .3rem; }
+/* Uniform, compact covers so the verdict and the range are visible without
+   scrolling past a portrait photo. */
+.card .ph img { width: 100%; height: 11rem; object-fit: cover; }
+.card .more-photos img { width: 100%; margin-top: .5rem; height: auto; }
+table.adj td { text-align: left; padding: .3rem .5rem; }
+table.adj td:nth-child(2) { text-align: right; white-space: nowrap; }
 .basis { color: var(--muted); font-size: .72em; }
 .badge.risk-low { background: var(--green); }
 .badge.risk-mid { background: var(--yellow); }

@@ -1,20 +1,23 @@
-"""Segment-aware fair-price assessment; journal encryption round-trip."""
+"""Journal assessment and encryption round-trip.
+
+The valuation itself lives in valuation.py — comparison with adjustments,
+producing a range. This module wires it to the journal and adds the one
+signal that has nothing to do with value: a suspicious price history.
+"""
 import base64
 import json
-import statistics
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 import crypto_util
 import store
+import valuation
 
 JOURNAL_LOCAL = Path("data/listings.json")
 JOURNAL_ENC = Path("data/listings.enc")
 JOURNAL_SITE = Path("site/data/listings.enc")
 GATE_PATH = Path("site/data/gate.json")
-REALTY_PATH = Path("data/realty.json")
-FAIR_BAND = 0.10
 REPRICE_THRESHOLD = 0.20
 
 
@@ -22,33 +25,16 @@ def _salt():
     return base64.b64decode(json.loads(GATE_PATH.read_text())["salt"])
 
 
-def latest_benchmarks():
-    bench = {}
-    for pt in store.load(REALTY_PATH)["points"]:
-        bench[pt["segment"]] = pt["price_per_m2"]  # points are chronological; last wins
-    return bench
-
-
-def assess(listing, benchmarks):
-    area = listing.get("house_m2") or listing.get("flat_m2")
-    ppm2 = listing["price_rub"] / area
-    comps = listing.get("comparables_per_m2")
-    fair = statistics.median(comps) if comps else benchmarks[listing["segment"]]
-    ratio = ppm2 / fair
-    if ratio < 1 - FAIR_BAND:
-        verdict = "below market"
-    elif ratio > 1 + FAIR_BAND:
-        verdict = "overpriced"
-    else:
-        verdict = "fair"
-    flag = False
+def reprice_flag(listing):
+    """A large jump in either direction is a bait-listing / distress signal,
+    independent of whether the current price is fair."""
     hist = [h["price_rub"] for h in listing.get("price_history", [])]
-    for a, b in zip(hist, hist[1:]):
-        if abs(b - a) / a > REPRICE_THRESHOLD:
-            flag = True
-    return {"price_per_m2": round(ppm2), "fair_per_m2": round(fair),
-            "verdict": verdict, "reprice_flag": flag,
-            "note": f"{round(ppm2)} vs fair {round(fair)} RUB/m2 ({ratio - 1:+.0%} vs fair)"}
+    return any(abs(b - a) / a > REPRICE_THRESHOLD for a, b in zip(hist, hist[1:]))
+
+
+def assess(listing, benchmarks, factors=None):
+    return {**valuation.estimate(listing, benchmarks, factors),
+            "reprice_flag": reprice_flag(listing)}
 
 
 def load_journal():
@@ -71,10 +57,11 @@ def save_journal(journal):
 
 def main():
     journal = load_journal()
-    bench = latest_benchmarks()
+    bench = valuation.latest_benchmarks()
+    factors = valuation.load_factors()
     for listing in journal["listings"]:
         manual_note = listing.get("assessment", {}).get("manual_note")
-        listing["assessment"] = assess(listing, bench)
+        listing["assessment"] = assess(listing, bench, factors)
         if manual_note:
             listing["assessment"]["manual_note"] = manual_note
     save_journal(journal)

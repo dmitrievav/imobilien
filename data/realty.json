@@ -1,8 +1,25 @@
-{"points": [
- {"date": "2026-07-25", "segment": "flat", "price_per_m2": 160000,
-  "source": "median of on-page Cian comparables, Pushkino, 2026-07-25"},
- {"date": "2026-07-25", "segment": "year-round house", "price_per_m2": 100000,
-  "source": "initial estimate, Pushkinsky district asking prices, to be refined"},
- {"date": "2026-07-25", "segment": "dacha", "price_per_m2": 70000,
-  "source": "initial estimate, to be refined"}
-]}
+{
+ "points": [
+  {
+   "date": "2026-07-25",
+   "segment": "flat",
+   "price_per_m2": 160000,
+   "source": "median of on-page Cian comparables, Pushkino, 2026-07-25",
+   "estimated": false
+  },
+  {
+   "date": "2026-07-25",
+   "segment": "year-round house",
+   "price_per_m2": 100000,
+   "source": "initial estimate, Pushkinsky district asking prices, to be refined",
+   "estimated": true
+  },
+  {
+   "date": "2026-07-25",
+   "segment": "dacha",
+   "price_per_m2": 70000,
+   "source": "initial estimate, to be refined",
+   "estimated": true
+  }
+ ]
+}

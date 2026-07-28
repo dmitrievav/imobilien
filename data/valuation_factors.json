@@ -1,0 +1,56 @@
+{
+  "as_of": "2026-07-28",
+  "method_note_ru": "Метод сравнительного анализа с поправками, как у оценщиков: берём типичную цену за м² для этого типа жилья, затем поправляем на отличия конкретного объекта. Все коэффициенты ниже — оценочные, взяты как принятые в практике порядки величин, а не измерены на большой выборке. Их можно и нужно спорить.",
+  "band": {
+    "base_pct": 0.10,
+    "no_comparables_pct": 0.05,
+    "estimated_base_pct": 0.10,
+    "per_missing_field_pct": 0.02,
+    "max_pct": 0.30
+  },
+  "comparable_adjustment_weight": 0.5,
+  "flat": {
+    "reference_area_m2": 60,
+    "area_step_m2": 20,
+    "area_step_pct": -0.02,
+    "area_step_cap_pct": -0.06,
+    "key_fields": ["floor", "year_built", "wall_material", "renovation"],
+    "floor": {"first": -0.07, "last": -0.03, "middle": 0.0},
+    "year_built": [
+      {"until": 1970, "pct": -0.10, "why_ru": "дом старше 1970 года"},
+      {"until": 1991, "pct": -0.05, "why_ru": "дом 1970–1990 годов"},
+      {"until": 2011, "pct": 0.0, "why_ru": "дом 1991–2010 годов"},
+      {"until": 9999, "pct": 0.05, "why_ru": "дом новее 2010 года"}
+    ],
+    "wall_material": {"panel": -0.05, "brick": 0.03, "monolith": 0.05, "block": 0.0},
+    "renovation": {"none": -0.12, "cosmetic": -0.05, "euro": 0.05, "designer": 0.08},
+    "kitchen_large_m2": 12,
+    "kitchen_large_pct": 0.03,
+    "ceiling_tall_m": 2.8,
+    "ceiling_tall_pct": 0.02
+  },
+  "house": {
+    "reference_land_sotki": 10,
+    "land_step_sotki": 5,
+    "land_step_pct": 0.03,
+    "land_step_cap_pct": 0.09,
+    "key_fields": ["year_built", "wall_material", "renovation", "utilities", "land_category", "mkad_km"],
+    "gas": {"yes": 0.15, "no": -0.15},
+    "water_sewage": {"central": 0.07, "own": 0.0, "none": -0.10},
+    "land_category": {"IZhS": 0.05, "SNT": -0.10},
+    "wall_material": {"brick": 0.05, "aerated concrete": 0.05, "timber (brus)": 0.0, "log": 0.0, "frame": -0.08},
+    "year_built": [
+      {"until": 1990, "pct": -0.15, "why_ru": "дом старше 1990 года"},
+      {"until": 2011, "pct": -0.05, "why_ru": "дом 1990–2010 годов"},
+      {"until": 9999, "pct": 0.05, "why_ru": "дом новее 2010 года"}
+    ],
+    "mkad_km": [
+      {"until": 21, "pct": 0.10, "why_ru": "до 20 км от МКАД"},
+      {"until": 41, "pct": 0.0, "why_ru": "20–40 км от МКАД"},
+      {"until": 61, "pct": -0.08, "why_ru": "40–60 км от МКАД"},
+      {"until": 9999, "pct": -0.15, "why_ru": "дальше 60 км от МКАД"}
+    ],
+    "renovation": {"none": -0.12, "cosmetic": -0.05, "euro": 0.05, "designer": 0.08},
+    "extras": {"banya/sauna": 0.03, "terrace": 0.02, "garage": 0.02}
+  }
+}

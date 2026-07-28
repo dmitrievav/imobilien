@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Варианты</title>
-<link rel="stylesheet" href="assets/style.css?v=202607271754">
+<link rel="stylesheet" href="assets/style.css?v=202607280856">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<script src="assets/version.js?v=202607271754"></script>
+<script src="assets/version.js?v=202607280856"></script>
 </head>
 <body class="locked">
 <p id="gate-msg">Личная страница. Откройте её по ссылке из семейного чата.</p>
@@ -24,14 +24,56 @@
   </p>
   <ul class="cards" id="cards"></ul>
 </main>
-<script src="assets/gate.js?v=202607271754"></script>
+<script src="assets/gate.js?v=202607280856"></script>
 <script>
-const VERDICT_RU = {"fair": ["fair", "Справедливая цена"],
-  "overpriced": ["overpriced", "Переоценён"], "below market": ["below", "Ниже рынка"]};
-const STATUS_RU = {considering: "Рассматриваем", viewed: "Смотрели",
-  favorite: "Фаворит ★", rejected: "Отклонён"};
+const VERDICT_RU = {
+  inside: ["fair", "Цена в рынке"],
+  above:  ["overpriced", "Дороже оценки"],
+  below:  ["below", "Дешевле оценки"]};
+// Only statuses that actually say something get a badge — every card being
+// "Рассматриваем" is noise.
+const STATUS_RU = {favorite: "Фаворит ★", rejected: "Отклонён", viewed: "Смотрели"};
 const ORDER = {favorite: 0, considering: 1, viewed: 2, rejected: 3};
 const fmtM = (x) => (x / 1e6).toFixed(1).replace(".", ",") + " млн ₽";
+const fmtK = (x) => Math.round(x / 1000) + " тыс ₽";
+const signPct = (x) => (x > 0 ? "+" : "−") + Math.abs(x * 100).toFixed(0) + "%";
+
+// A range the eye can read: the estimate band, with the asking price marked
+// on it. Clamped so an extreme price still lands inside the bar.
+function rangeBar(a, price) {
+  const lo = a.low, hi = a.high, span = hi - lo;
+  const at = Math.max(0, Math.min(100, ((price - lo) / span) * 100));
+  const fairAt = ((a.fair - lo) / span) * 100;
+  return `<div class="rangewrap">
+      <div class="rangebar">
+        <div class="fairmark" style="left:${fairAt}%"></div>
+        <div class="pricemark ${a.verdict}" style="left:${at}%"></div>
+      </div>
+      <div class="rangeends"><span>${fmtM(lo)}</span><span>${fmtM(hi)}</span></div>
+      <p class="rangelegend">Оценка — <strong>${fmtM(a.fair)}</strong>,
+         запрашивают <strong>${fmtM(price)}</strong>
+         (${signPct(a.vs_fair_pct)} к оценке)</p>
+    </div>`;
+}
+
+function analysisBlock(a) {
+  const rows = (a.adjustments || []).map(x =>
+    `<tr><td>${x.name_ru}</td><td>${x.pct === 0 ? "0%" : signPct(x.pct)}</td>` +
+    `<td class="basis">${x.why_ru}</td></tr>`).join("");
+  const damped = a.adjustment_weight < 1
+    ? " Поправки взяты вполовину: похожие объявления рядом уже учитывают обычное качество, иначе оно посчиталось бы дважды."
+    : "";
+  return `<h3>Как посчитана оценка</h3>
+    <p>База — <strong>${fmtK(a.base_per_m2)}/м²</strong>: ${a.base_why_ru}.${damped}</p>
+    <div class="scroll"><table class="adj">${rows}</table></div>
+    <p>Итого <strong>${fmtK(a.per_m2)}/м²</strong> против
+       <strong>${fmtK(a.price_per_m2)}/м²</strong> в объявлении.</p>
+    <p class="hint">Точность расчёта — плюс-минус ${(a.band_pct * 100).toFixed(0)}%${
+      a.missing_fields ? `, часть данных об объекте неизвестна (${a.missing_fields})` : ""}.
+      Коэффициенты поправок — принятые в практике оценки порядки величин, а не
+      измерения на большой выборке.</p>`;
+}
+
 let key, journal, seg = "all";
 
 async function photoUrl(id, n) {
@@ -61,13 +103,14 @@ async function render() {
       `<div class="ph"></div><h2>${l.label}</h2>` +
       `<p>${l.settlement} · ${area} м² · <strong>${fmtM(l.price_rub)}</strong></p>` +
       `<p><span class="badge ${vc}">${vt}</span>` +
-      `<span class="badge status">${STATUS_RU[l.status] || l.status}</span>` +
+      (STATUS_RU[l.status] ? `<span class="badge status">${STATUS_RU[l.status]}</span>` : "") +
       (a.reprice_flag ? `<span class="badge flag">Цена скакала!</span>` : "") + `</p>` +
+      (a.low ? rangeBar(a, l.price_rub) : "") +
       `<div class="details" hidden>` +
-      `<p>${Math.round(a.price_per_m2 / 1000)} тыс ₽/м² при рынке ~${Math.round(a.fair_per_m2 / 1000)} тыс ₽/м²</p>` +
-      (l.family_notes ? `<p>${l.family_notes}</p>` : "") +
-      (l.price_history ? `<p>История цены: ${l.price_history.map(h => h.date + " — " + fmtM(h.price_rub)).join("; ")}</p>` : "") +
-      (l.url ? `<p><a href="${l.url}" target="_blank" rel="noreferrer">Объявление</a></p>` : "") +
+      (a.low ? analysisBlock(a) : "") +
+      (l.family_notes ? `<h3>Заметки семьи</h3><p>${l.family_notes}</p>` : "") +
+      (l.price_history ? `<p class="hint">История цены: ${l.price_history.map(h => h.date + " — " + fmtM(h.price_rub)).join("; ")}</p>` : "") +
+      (l.url ? `<p><a href="${l.url}" target="_blank" rel="noreferrer">Открыть объявление</a></p>` : "") +
       `<div class="more-photos"></div></div>`;
     if (l.photos > 0) {
       photoUrl(l.id, 1).then(u => { li.querySelector(".ph").innerHTML = `<img src="${u}" alt="">`; })
