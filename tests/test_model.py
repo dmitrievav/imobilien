@@ -125,3 +125,13 @@ def test_dollar_inflation_line_uses_us_inflation():
     out = model.run(A)
     line = out["inflation_line_usd"]
     assert abs(line[10] - out["capital_usd"] * (1 + A["us_inflation"]) ** 10) <= 2
+
+
+def test_floater_fund_glides_with_a_spread_over_the_deposit():
+    """TPAY follows the key rate down like the deposit, but from a higher
+    start (corporate coupons minus the fund fee) and to a higher floor —
+    so it must beat the deposit at every horizon while never being flat."""
+    out = model.run(A)
+    tpay, dep = out["assets"]["tpay"]["series"], out["assets"]["deposit"]["series"]
+    assert all(t >= d for t, d in zip(tpay[1:], dep[1:]))
+    assert out["assets"]["tpay"]["avg_rate"] < A["assets"]["tpay"]["glide"]["rate_start"]

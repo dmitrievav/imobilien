@@ -658,3 +658,25 @@ How realistic that assumption is differs by asset, and the page now says so:
   yield-to-maturity convention, and its right-hand end is optimistic by the
   reinvestment-rate risk. A zero-coupon or coupon-capitalising structure
   would remove the caveat, but the plain OFZ ladder does not.
+
+## TPAY restored as its own row (round 14, continued)
+
+Dropped in round 8 as "duplicating OFZ" — too crude, and the reader asked
+for it back. Checked against the fund's own page (tbank.ru/invest/etfs/TPAY):
+85 RUB bonds, mostly floaters plus short fixed coupon, rating BBB+ and up
+(average AA−), average coupon yield **17.0%**, fund expenses **0.999%/yr**,
+income paid out to holders monthly.
+
+Why it is NOT an OFZ duplicate: the coupons float with the key rate, so
+nothing is lockable — as rates fall, the payouts fall, exactly like the
+deposit. What it keeps over the deposit is the corporate-credit spread; what
+it gives up is АСВ insurance and a contractual rate.
+
+Modelled with the same glide machinery as the deposit (`_glide_series`,
+generalised from the deposit-only code): start 16% (17% coupons − 1% fee),
+floor 10% (deposit floor 8% + ~2pp spread), 3-year decay, 13% tax on
+payouts, payouts assumed reinvested. Result: 9.7%/yr delivered average —
+between the deposit (7.8%) and locked OFZ (13%), which is exactly where a
+floater fund belongs. Risk «средний»: no АСВ, credit risk, no maturity.
+No drawdown column: the fund is young and RGBITR (state bonds, fixed
+coupon) would be the wrong proxy for a corporate floater portfolio.

@@ -32,14 +32,19 @@ def nominal_rate(cfg, inflation):
     return cfg.get("rate")
 
 
-def _deposit_series(capital, horizon, a):
-    """Rate glides from today's level down to the floor; interest is taxed."""
-    d = a["deposit"]
+def _glide_series(capital, g, horizon):
+    """Rate glides from today's level down to the floor; income is taxed.
+
+    Shared by every floating-rate instrument: the bank deposit and the
+    floater bond fund both follow the key rate down, differing only in the
+    start level, the floor (the fund keeps a corporate-credit spread) and
+    fees already netted out of the start rate.
+    """
     v, out = capital, [capital]
     for t in range(horizon):
-        rate = max(d["rate_floor"],
-                   d["rate_start"] - (d["rate_start"] - d["rate_floor"]) * t / d["decay_years"])
-        v += v * rate * (1 - d["interest_tax"])
+        rate = max(g["rate_floor"],
+                   g["rate_start"] - (g["rate_start"] - g["rate_floor"]) * t / g["decay_years"])
+        v += v * rate * (1 - g["interest_tax"])
         out.append(v)
     return out
 
@@ -75,7 +80,9 @@ def run(a):
     assets = {}
     for name, cfg in a["assets"].items():
         if name == "deposit":
-            series = _deposit_series(capital, horizon, a)
+            series = _glide_series(capital, a["deposit"], horizon)
+        elif cfg.get("glide"):
+            series = _glide_series(capital, cfg["glide"], horizon)
         else:
             series = _compound_series(capital, nominal_rate(cfg, infl), horizon)
         usd = to_usd(series, a)
