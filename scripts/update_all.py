@@ -32,9 +32,9 @@ def reassess(fairprice_main):
 
 
 if __name__ == "__main__":
-    import fairprice, fetch_cbr, fetch_crypto, fetch_moex, model
+    import fairprice, fetch_cbr, fetch_crypto, fetch_irn, fetch_moex, model
     statuses = run_all({"cbr": fetch_cbr.main, "moex": fetch_moex.main,
-                        "crypto": fetch_crypto.main})
+                        "crypto": fetch_crypto.main, "irn": fetch_irn.main})
     for name, s in statuses.items():
         print(f"{name}: {s}")
     model.main()  # loud failure by design

@@ -605,3 +605,30 @@ houses (`irn.ru/zagorodnaya/` is a search page, not an index), and no open
 series covers Pushkinsky-district IZhS. The house benchmark therefore stays a
 flagged estimate at 100 000 RUB/m², which is why every house verdict carries a
 ±25% band. That remains the single weakest input in the project.
+
+## IRN as a fetchable benchmark source (round 13, continued)
+
+The user asked where the average price per m² comes from and pointed at IRN's
+long series and calculators. A research pass established:
+
+- **IRN is fetchable.** The apparent block was only a User-Agent filter;
+  town-level index values are published as text on clean, robots-allowed
+  paths. The charts (`/graph/`) and every query-string URL are disallowed by
+  robots.txt and are not touched. `scripts/fetch_irn.py` (17 mocked tests)
+  stores into `data/irn_prices.json`: 49 Podmoskovye towns, region and belt
+  levels, Moscow by house type, Podmoskovye by-type % change, and a
+  reference-town block for Pushkino with cumulative change over 1/2/3/5/10
+  years (from `POST /api/v1/calc/geo/diff`, a clean-path JSON API) —
+  today's level 153 304, implied ~72 177 in 2016 (+112.4% over 10y).
+- **The flat benchmark is now town-level**: Пушкино 153 304 RUB/m² replaces
+  the region-wide 161 832 adopted earlier the same day — our listings are in
+  Pushkino town, and the town differs from the region average by −5%.
+- **Cian is not fetchable** and its robots.txt disallows even its own price
+  pages; per-listing extraction stays agent-driven, never scripted.
+- **Rosstat** publishes the best long series (quarterly per-region, quality
+  classes, back to 1998; МО secondary Q1 2026 = 192 793 RUB/m²), but its
+  figure averages a different population than IRN's index — the two differ by
+  ~19% and must not be blended or swapped silently. A fetcher would also
+  need a pinned Russian CA bundle; deferred as a security decision.
+- **Houses and dachas remain unmeasured** by all of these: IRN indexes flats
+  only. The ±25% house band stays.
