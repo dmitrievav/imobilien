@@ -105,10 +105,15 @@ def _flat_adjustments(listing, f):
     if (listing.get("ceiling_m") or 0) >= f["ceiling_tall_m"]:
         adj.append(("Потолки", f["ceiling_tall_pct"], f"потолки {listing['ceiling_m']} м"))
     area = listing.get("flat_m2") or 0
-    steps = int(max(0, area - f["reference_area_m2"]) // f["area_step_m2"])
-    if steps:
-        pct = max(f["area_step_cap_pct"], steps * f["area_step_pct"])
-        adj.append(("Большая площадь", pct, "чем больше квартира, тем дешевле метр"))
+    # Unit price is a power function of area (C = b·S^n) with the "coefficient of
+    # deceleration" n from a matched-pair regression, not a step function. The
+    # exact form compares against each analogue's area; lacking those, we compare
+    # against the segment's reference area.
+    if area:
+        pct = (area / f["reference_area_m2"]) ** f["area_exponent"] - 1
+        adj.append(("Площадь", pct,
+                    f"{area} м² против типовых {f['reference_area_m2']} м²: "
+                    "чем больше, тем дешевле метр"))
     return adj
 
 
@@ -151,9 +156,50 @@ def _house_adjustments(listing, f):
     return adj
 
 
-def _band_pct(listing, cfg, has_comparables, base_estimated, missing):
+def variation(values):
+    """Coefficient of variation — the appraiser's homogeneity check.
+
+    Reported as an accuracy driver AND as a veto: past the threshold the
+    comparables are too unlike each other for their average to mean anything.
+    Note what it does not measure: the spread of the inputs, not the accuracy
+    of the answer. Four near-identical listings give a tiny V while still
+    being four asking prices from one street.
+    """
+    if not values or len(values) < 2:
+        return None
+    mean = sum(values) / len(values)
+    if mean == 0:
+        return None
+    var = sum((v - mean) ** 2 for v in values) / (len(values) - 1)
+    return (var ** 0.5) / mean
+
+
+def homogeneity_label(v, cfg):
+    if v is None:
+        return None
+    for row in cfg["homogeneity"]["bands_ru"]:
+        if v < row["until"]:
+            return row["label_ru"]
+    return cfg["homogeneity"]["bands_ru"][-1]["label_ru"]
+
+
+def bargaining_coef(listing, cfg):
+    """Asking price -> expected transaction price. Sellers close below the ad."""
+    b = cfg["bargaining"]
+    if listing["segment"] != "flat":
+        return b["house_coef"], b["house_note_ru"]
+    area = listing.get("flat_m2") or 0
+    for row in b["flat_by_area"]:
+        if area <= row["until_m2"]:
+            return row["coef"], b["source_ru"]
+    return b["flat_by_area"][-1]["coef"], b["source_ru"]
+
+
+def _band_pct(cfg, has_comparables, base_estimated, missing, v):
+    """Accuracy band: the measured spread of the comparables, floored at the
+    base assumption, plus penalties for everything we had to guess."""
     b = cfg["band"]
-    pct = b["base_pct"] + missing * b["per_missing_field_pct"]
+    pct = max(b["base_pct"], v or 0) + missing * b["per_missing_field_pct"]
     if not has_comparables:
         pct += b["no_comparables_pct"]
     if base_estimated:
@@ -199,16 +245,32 @@ def estimate(listing, benchmarks, cfg=None):
     missing = sum(1 for key in f["key_fields"]
                   if key == "renovation" and renovation_of(listing) is None
                   or key != "renovation" and listing.get(key) in (None, "", {}))
-    band = _band_pct(listing, cfg, bool(comps), base_estimated, missing)
+
+    # Measured spread of the comparables drives the accuracy band and can veto
+    # the whole estimate — the appraiser's homogeneity gate.
+    v = variation(comps) if comps and len(comps) > 1 else None
+    band = _band_pct(cfg, bool(comps), base_estimated, missing, v)
     low, high = fair * (1 - band), fair * (1 + band)
 
     price = listing["price_rub"]
-    verdict = "below" if price < low else "above" if price > high else "inside"
+    refuse = v is not None and v > cfg["homogeneity"]["refuse_above"]
+    if refuse:
+        verdict = "unreliable"
+    else:
+        verdict = "below" if price < low else "above" if price > high else "inside"
+
+    # What the object is likely to actually change hands for, and therefore how
+    # far down it is worth negotiating.
+    coef, coef_why = bargaining_coef(listing, cfg)
     return {"base_per_m2": round(base), "base_why_ru": base_why,
             "adjustments": adjustments,
             "adjustment_weight": weight,
             "per_m2": round(per_m2), "price_per_m2": round(price / area),
             "fair": round(fair), "low": round(low), "high": round(high),
             "band_pct": round(band, 4), "missing_fields": missing,
+            "variation_pct": None if v is None else round(v, 4),
+            "homogeneity_ru": homogeneity_label(v, cfg),
+            "bargaining_coef": coef, "bargaining_why_ru": coef_why,
+            "likely_deal": round(fair * coef),
             "vs_fair_pct": round(price / fair - 1, 4),
             "verdict": verdict}

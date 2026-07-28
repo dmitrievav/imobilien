@@ -1,56 +1,195 @@
 {
   "as_of": "2026-07-28",
-  "method_note_ru": "Метод сравнительного анализа с поправками, как у оценщиков: берём типичную цену за м² для этого типа жилья, затем поправляем на отличия конкретного объекта. Все коэффициенты ниже — оценочные, взяты как принятые в практике порядки величин, а не измерены на большой выборке. Их можно и нужно спорить.",
+  "method_note_ru": "Метод сравнительного анализа с поправками, как в официальных отчётах об оценке. Берём типичную цену за м², поправляем на отличия конкретного объекта, считаем разброс исходных данных и от него — точность. Коэффициенты поправок — принятые в практике порядки величин, а не измерения на большой выборке; скидка на торг и поправка на площадь взяты из методики судебной экспертизы (источник — портал Statrielt, данные на 01.10.2025).",
   "band": {
-    "base_pct": 0.10,
+    "base_pct": 0.1,
     "no_comparables_pct": 0.05,
-    "estimated_base_pct": 0.10,
+    "estimated_base_pct": 0.1,
     "per_missing_field_pct": 0.02,
-    "max_pct": 0.30
+    "max_pct": 0.3
   },
   "comparable_adjustment_weight": 0.5,
   "flat": {
     "reference_area_m2": 60,
-    "area_step_m2": 20,
-    "area_step_pct": -0.02,
-    "area_step_cap_pct": -0.06,
-    "key_fields": ["floor", "year_built", "wall_material", "renovation"],
-    "floor": {"first": -0.07, "last": -0.03, "middle": 0.0},
-    "year_built": [
-      {"until": 1970, "pct": -0.10, "why_ru": "дом старше 1970 года"},
-      {"until": 1991, "pct": -0.05, "why_ru": "дом 1970–1990 годов"},
-      {"until": 2011, "pct": 0.0, "why_ru": "дом 1991–2010 годов"},
-      {"until": 9999, "pct": 0.05, "why_ru": "дом новее 2010 года"}
+    "key_fields": [
+      "floor",
+      "year_built",
+      "wall_material",
+      "renovation"
     ],
-    "wall_material": {"panel": -0.05, "brick": 0.03, "monolith": 0.05, "block": 0.0},
-    "renovation": {"none": -0.12, "cosmetic": -0.05, "euro": 0.05, "designer": 0.08},
+    "floor": {
+      "first": -0.07,
+      "last": -0.03,
+      "middle": 0.0
+    },
+    "year_built": [
+      {
+        "until": 1970,
+        "pct": -0.1,
+        "why_ru": "дом старше 1970 года"
+      },
+      {
+        "until": 1991,
+        "pct": -0.05,
+        "why_ru": "дом 1970–1990 годов"
+      },
+      {
+        "until": 2011,
+        "pct": 0.0,
+        "why_ru": "дом 1991–2010 годов"
+      },
+      {
+        "until": 9999,
+        "pct": 0.05,
+        "why_ru": "дом новее 2010 года"
+      }
+    ],
+    "wall_material": {
+      "panel": -0.05,
+      "brick": 0.03,
+      "monolith": 0.05,
+      "block": 0.0
+    },
+    "renovation": {
+      "none": -0.12,
+      "cosmetic": -0.05,
+      "euro": 0.05,
+      "designer": 0.08
+    },
     "kitchen_large_m2": 12,
     "kitchen_large_pct": 0.03,
     "ceiling_tall_m": 2.8,
-    "ceiling_tall_pct": 0.02
+    "ceiling_tall_pct": 0.02,
+    "area_exponent": -0.11,
+    "area_exponent_source_ru": "коэффициент торможения n = −0,11 (R² = 0,703)"
   },
   "house": {
     "reference_land_sotki": 10,
     "land_step_sotki": 5,
     "land_step_pct": 0.03,
     "land_step_cap_pct": 0.09,
-    "key_fields": ["year_built", "wall_material", "renovation", "utilities", "land_category", "mkad_km"],
-    "gas": {"yes": 0.15, "no": -0.15},
-    "water_sewage": {"central": 0.07, "own": 0.0, "none": -0.10},
-    "land_category": {"IZhS": 0.05, "SNT": -0.10},
-    "wall_material": {"brick": 0.05, "aerated concrete": 0.05, "timber (brus)": 0.0, "log": 0.0, "frame": -0.08},
+    "key_fields": [
+      "year_built",
+      "wall_material",
+      "renovation",
+      "utilities",
+      "land_category",
+      "mkad_km"
+    ],
+    "gas": {
+      "yes": 0.15,
+      "no": -0.15
+    },
+    "water_sewage": {
+      "central": 0.07,
+      "own": 0.0,
+      "none": -0.1
+    },
+    "land_category": {
+      "IZhS": 0.05,
+      "SNT": -0.1
+    },
+    "wall_material": {
+      "brick": 0.05,
+      "aerated concrete": 0.05,
+      "timber (brus)": 0.0,
+      "log": 0.0,
+      "frame": -0.08
+    },
     "year_built": [
-      {"until": 1990, "pct": -0.15, "why_ru": "дом старше 1990 года"},
-      {"until": 2011, "pct": -0.05, "why_ru": "дом 1990–2010 годов"},
-      {"until": 9999, "pct": 0.05, "why_ru": "дом новее 2010 года"}
+      {
+        "until": 1990,
+        "pct": -0.15,
+        "why_ru": "дом старше 1990 года"
+      },
+      {
+        "until": 2011,
+        "pct": -0.05,
+        "why_ru": "дом 1990–2010 годов"
+      },
+      {
+        "until": 9999,
+        "pct": 0.05,
+        "why_ru": "дом новее 2010 года"
+      }
     ],
     "mkad_km": [
-      {"until": 21, "pct": 0.10, "why_ru": "до 20 км от МКАД"},
-      {"until": 41, "pct": 0.0, "why_ru": "20–40 км от МКАД"},
-      {"until": 61, "pct": -0.08, "why_ru": "40–60 км от МКАД"},
-      {"until": 9999, "pct": -0.15, "why_ru": "дальше 60 км от МКАД"}
+      {
+        "until": 21,
+        "pct": 0.1,
+        "why_ru": "до 20 км от МКАД"
+      },
+      {
+        "until": 41,
+        "pct": 0.0,
+        "why_ru": "20–40 км от МКАД"
+      },
+      {
+        "until": 61,
+        "pct": -0.08,
+        "why_ru": "40–60 км от МКАД"
+      },
+      {
+        "until": 9999,
+        "pct": -0.15,
+        "why_ru": "дальше 60 км от МКАД"
+      }
     ],
-    "renovation": {"none": -0.12, "cosmetic": -0.05, "euro": 0.05, "designer": 0.08},
-    "extras": {"banya/sauna": 0.03, "terrace": 0.02, "garage": 0.02}
+    "renovation": {
+      "none": -0.12,
+      "cosmetic": -0.05,
+      "euro": 0.05,
+      "designer": 0.08
+    },
+    "extras": {
+      "banya/sauna": 0.03,
+      "terrace": 0.02,
+      "garage": 0.02
+    }
+  },
+  "bargaining": {
+    "source_ru": "Statrielt, опрос участников рынка; Б-группа (города Подмосковья в агломерации)",
+    "flat_by_area": [
+      {
+        "until_m2": 70,
+        "coef": 0.94
+      },
+      {
+        "until_m2": 100,
+        "coef": 0.94
+      },
+      {
+        "until_m2": 140,
+        "coef": 0.93
+      },
+      {
+        "until_m2": 99999,
+        "coef": 0.9
+      }
+    ],
+    "house_coef": 0.92,
+    "house_note_ru": "оценка: таблица Statrielt покрывает квартиры; загородные дома менее ликвидны, торг обычно шире"
+  },
+  "homogeneity": {
+    "bands_ru": [
+      {
+        "until": 0.1,
+        "label_ru": "разброс небольшой"
+      },
+      {
+        "until": 0.2,
+        "label_ru": "разброс средний"
+      },
+      {
+        "until": 0.33,
+        "label_ru": "разброс значительный"
+      },
+      {
+        "until": 9.99,
+        "label_ru": "данные разнородны — считать нельзя"
+      }
+    ],
+    "refuse_above": 0.33,
+    "source_ru": "коэффициент вариации; порог 33% из методики экспертизы"
   }
 }

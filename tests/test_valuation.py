@@ -133,3 +133,55 @@ def test_factor_reasons_are_in_russian_not_source_values():
     assert "Баня" in by_name and "Терраса" in by_name
     for a in out["adjustments"]:
         assert not any(ch.isascii() and ch.isalpha() for ch in a["name_ru"])
+
+
+def test_variation_measures_relative_spread():
+    assert valuation.variation([100, 100, 100]) == 0.0
+    assert valuation.variation([100]) is None          # needs at least two
+    assert valuation.variation([]) is None
+    v = valuation.variation([90, 100, 110])
+    assert abs(v - 0.1) < 0.001                        # sd 10 on mean 100
+
+
+def test_heterogeneous_comparables_are_refused_not_averaged():
+    """Past the 33% threshold the appraiser refuses the comparative approach;
+    so do we, instead of silently averaging unlike things."""
+    out = valuation.estimate(flat(comparables_per_m2=[80000, 160000, 320000]), BENCH, CFG)
+    assert out["variation_pct"] > CFG["homogeneity"]["refuse_above"]
+    assert out["verdict"] == "unreliable"
+    assert "нельзя" in out["homogeneity_ru"]
+
+
+def test_comparable_spread_widens_the_band_beyond_the_floor():
+    tight = valuation.estimate(flat(comparables_per_m2=[160000, 161000, 159000]), BENCH, CFG)
+    loose = valuation.estimate(flat(comparables_per_m2=[130000, 160000, 190000]), BENCH, CFG)
+    assert tight["band_pct"] == CFG["band"]["base_pct"]          # floored at the base
+    assert loose["band_pct"] > tight["band_pct"]                 # measured spread dominates
+    assert abs(loose["band_pct"] - loose["variation_pct"]) < 0.001
+
+
+def test_bargaining_discount_gives_a_negotiation_target():
+    """Asking prices close below the ad, so the likely deal sits under the
+    asking-based estimate — that gap is how far it is worth negotiating."""
+    out = valuation.estimate(flat(comparables_per_m2=[160000]), BENCH, CFG)
+    assert out["bargaining_coef"] == 0.94                        # flat under 100 m2
+    assert out["likely_deal"] == round(out["fair"] * 0.94)
+    assert out["likely_deal"] < out["fair"]
+
+
+def test_bargaining_widens_for_large_flats_and_houses():
+    big = valuation.estimate(flat(flat_m2=200, price_rub=40_000_000,
+                                  comparables_per_m2=[200000]), BENCH, CFG)
+    assert big["bargaining_coef"] == 0.90
+    assert valuation.estimate(house(), BENCH, CFG)["bargaining_coef"] == 0.92
+
+
+def test_area_correction_follows_the_power_law():
+    """Not a step function: unit price decelerates as area grows, exponent
+    -0.11 from a matched-pair regression."""
+    small = valuation.estimate(flat(flat_m2=60), BENCH, CFG)
+    big = valuation.estimate(flat(flat_m2=120), BENCH, CFG)
+    area_adj = {a["name_ru"]: a["pct"] for a in big["adjustments"]}["Площадь"]
+    expected = ((120 / 60) ** -0.11 - 1)
+    assert abs(area_adj - expected) < 0.001
+    assert small["per_m2"] > big["per_m2"]                       # bigger flat, cheaper metre

@@ -512,3 +512,96 @@ when it says something — every card reading "Рассматриваем" was n
 Chart tooltips also fixed: `interaction: {mode: "index", intersect: false}`,
 so hovering anywhere on a year lists every line, sorted by value. A 70+
 reader should not have to hit a 3-pixel stroke.
+
+## What the official court appraisal taught us (round 13)
+
+The user supplied a 32-page expert opinion by an independent appraisal company,
+prepared as court evidence. Full methodology extraction (no personal data) is
+in `.superpowers/sdd/.../appraisal-methodology.md`. Four things were worth
+adopting; two were not adoptable and are recorded as known gaps.
+
+### Adopted
+
+1. **Bargaining discount (скидка на торг).** The report converts asking prices
+   to expected transaction prices before comparing anything, arguing that
+   roughly 30% of listings are simply over-asked. It applies **−6.0%** to every
+   comparable, from a Statrielt quarterly survey matrix keyed on
+   market × area band × location group; secondary market, ≤100 m², group Б
+   (Moscow-oblast cities inside the agglomeration — where Pushkinsky district
+   falls) = 0.94. We now carry that matrix: 0.94 up to 100 m², 0.93 to 140 m²,
+   0.90 above. For houses the table has no row, so 0.92 is our own flagged
+   estimate — country property is less liquid, so the discount should be wider
+   than a flat's, and we say that is a judgement.
+
+   The valuation keeps the verdict on an asking-to-asking basis (comparables
+   are asking prices too, so that comparison stays like-for-like) and reports
+   the discounted figure separately as `likely_deal` — the price such objects
+   actually change hands at, i.e. **how far it is worth negotiating**. That is
+   the most directly useful number the report gave us.
+
+2. **Area correction as a power law, not a bracket.** Unit price is
+   `C = b·S^n` with a "коэффициент торможения" n = **−0.11** fitted at
+   R² = 0.703 on matched pairs. Replaces our −2%-per-20 m² step function. The
+   exact form is `(S_subject / S_analogue)^-0.11`, comparing against each
+   analogue's area; we only store comparables' prices, not their areas, so we
+   compare against the segment's reference area instead. **[refine]** —
+   recording comparable areas at ingestion would let us use the real pairwise
+   form.
+
+3. **A computed dispersion statistic instead of an assumed band.** The report
+   computes the coefficient of variation on the adjusted analogue prices
+   (V = 0.65% in its case) and reads it against printed bands: <10%
+   insignificant, 10–20% medium, 20–33% significant, **>33% ⇒ the comparative
+   approach may not be used at all**. Our band was a constant we invented.
+   Now `variation()` measures the spread of the comparables and the band is
+   `max(base 10%, V)` plus the existing penalties, and V above 33% returns
+   verdict `unreliable` rather than a confident-looking number.
+
+   Effect on real listings: the Zapadny flat's comparables agree to 1.9%, so
+   its band stays at the 10% floor; the O'Pushkin flat's disagree by **13.8%**
+   ("разброс средний"), widening its band from ±12% to ±16%. That width is now
+   measured rather than asserted.
+
+4. **The report's own caveat, reproduced.** V is small *because* almost nothing
+   was adjusted and all four analogues were near-identical listings from one
+   neighbourhood. It measures the spread of the inputs, not the accuracy of the
+   answer. Our code says so in the docstring, and the page says so in Russian.
+
+### Not adopted, and why
+
+- **Inverse-gross-adjustment weighting.** The report weights each analogue by
+  `W_i = (1 − d_i/Σd)/Σ(...)`, so the analogue needing fewest corrections
+  counts most. We cannot: we store comparables as bare prices per m² with no
+  characteristics, so there is no per-analogue adjustment total to weight by.
+  We take a median instead, which is at least robust to one outlier.
+  **[refine]** — needs richer comparable records.
+- **Zero corrections for location, transport, wall material, floor,
+  renovation, bathroom, balcony.** The report applies *none* of these, because
+  its four analogues were selected to match on all of them; only bargaining and
+  area remained. That is the ideal, and it validates our damping of adjustments
+  when comparables are close — but with 3–4 opportunistically collected
+  comparables we cannot claim that degree of matching, so the corrections stay.
+
+### Also notable, not actionable for us
+
+Only the comparative approach was used, weight 1.0; the cost approach was
+rejected under ФСО № 7 п. 24 (not applicable to parts of buildings, no
+separable plot per ст. 36 ЗК РФ) and the income approach because the rental
+market is unregistered and cash, leaving no reliable NOI. A single point figure
+was reported, not a range — deliberately, and with no rounding to thousands.
+We keep reporting a range, which for our data quality is the honest choice.
+
+## Benchmark base: removing a circular reference (round 13)
+
+The flat benchmark in `data/realty.json` was 160 000 RUB/m² — the median of
+the very on-page comparables that the benchmark is then used to judge. That is
+circular. Replaced with IRN.RU's independent Podmoskovye flat index,
+**161 832 RUB/m²** (`https://www.irn.ru/analitika/`, read 2026-07-25). The two
+agree within 1.2%, which is reassuring about both, but only one of them is
+independent evidence.
+
+Checked and not available: IRN publishes no RUB/m² statistics for country
+houses (`irn.ru/zagorodnaya/` is a search page, not an index), and no open
+series covers Pushkinsky-district IZhS. The house benchmark therefore stays a
+flagged estimate at 100 000 RUB/m², which is why every house verdict carries a
+±25% band. That remains the single weakest input in the project.

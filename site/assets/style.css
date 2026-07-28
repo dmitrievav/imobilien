@@ -57,6 +57,7 @@ button.active { background: var(--accent); color: #fff; border-color: var(--acce
 .rangeends { display: flex; justify-content: space-between;
              font-size: .75em; color: var(--muted); }
 .rangelegend { margin: .35rem 0 0; font-size: .9em; }
+.deal { margin: .3rem 0 0; font-size: .9em; color: var(--accent); }
 .pricemove { margin: .5rem 0 0; font-size: .9em; font-weight: bold; }
 .pricemove.up { color: var(--red); }
 .pricemove.down { color: #1f6fb2; }

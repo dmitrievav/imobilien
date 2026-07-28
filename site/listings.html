@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Варианты</title>
-<link rel="stylesheet" href="assets/style.css?v=202607280925">
+<link rel="stylesheet" href="assets/style.css?v=202607280937">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<script src="assets/version.js?v=202607280925"></script>
+<script src="assets/version.js?v=202607280937"></script>
 </head>
 <body class="locked">
 <p id="gate-msg">Личная страница. Откройте её по ссылке из семейного чата.</p>
@@ -24,12 +24,13 @@
   </p>
   <ul class="cards" id="cards"></ul>
 </main>
-<script src="assets/gate.js?v=202607280925"></script>
+<script src="assets/gate.js?v=202607280937"></script>
 <script>
 const VERDICT_RU = {
   inside: ["fair", "Цена в рынке"],
   above:  ["overpriced", "Дороже оценки"],
-  below:  ["below", "Дешевле оценки"]};
+  below:  ["below", "Дешевле оценки"],
+  unreliable: ["status", "Оценить нельзя"]};
 // Only statuses that actually say something get a badge — every card being
 // "Рассматриваем" is noise.
 const STATUS_RU = {favorite: "Фаворит ★", rejected: "Отклонён", viewed: "Смотрели"};
@@ -53,6 +54,11 @@ function rangeBar(a, price) {
       <p class="rangelegend">Оценка — <strong>${fmtM(a.fair)}</strong>,
          запрашивают <strong>${fmtM(price)}</strong>
          (${signPct(a.vs_fair_pct)} к оценке)</p>
+      <p class="deal">${a.likely_deal < price
+        ? `Реально такие объекты уходят за <strong>${fmtM(a.likely_deal)}</strong> —
+           примерно до этого и стоит торговаться`
+        : `Цена уже на уровне реальных сделок (около
+           <strong>${fmtM(a.likely_deal)}</strong>) — торга почти не осталось`}</p>
     </div>`;
 }
 
@@ -89,14 +95,23 @@ function analysisBlock(a) {
   const damped = a.adjustment_weight < 1
     ? " Поправки взяты вполовину: похожие объявления рядом уже учитывают обычное качество, иначе оно посчиталось бы дважды."
     : "";
+  const spread = a.variation_pct === null || a.variation_pct === undefined ? ""
+    : `<p>Похожие объявления расходятся между собой на
+       <strong>${(a.variation_pct * 100).toFixed(1).replace(".", ",")}%</strong> —
+       ${a.homogeneity_ru}. Именно от этого разброса и считается точность:
+       чем сильнее аналоги спорят друг с другом, тем шире диапазон.</p>`;
   return `<h3>Как посчитана оценка</h3>
     <p>База — <strong>${fmtK(a.base_per_m2)}/м²</strong>: ${a.base_why_ru}.${damped}</p>
+    ${spread}
     <div class="scroll"><table class="adj">${rows}</table></div>
     <p>Итого <strong>${fmtK(a.per_m2)}/м²</strong> против
        <strong>${fmtK(a.price_per_m2)}/м²</strong> в объявлении.</p>
+    <p>Скидка на торг — <strong>${((1 - a.bargaining_coef) * 100).toFixed(0)}%</strong>:
+       ${a.bargaining_why_ru}. Отсюда и берётся реальная цена сделки.</p>
     <p class="hint">Точность расчёта — плюс-минус ${(a.band_pct * 100).toFixed(0)}%${
       a.missing_fields ? `, часть данных об объекте неизвестна (${a.missing_fields})` : ""}.
-      Коэффициенты поправок — принятые в практике оценки порядки величин, а не
+      Метод и поправки на торг и площадь взяты из методики судебной экспертизы;
+      остальные коэффициенты — принятые в практике порядки величин, а не
       измерения на большой выборке.</p>`;
 }
 
