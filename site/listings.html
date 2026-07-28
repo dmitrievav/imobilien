@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Варианты</title>
-<link rel="stylesheet" href="assets/style.css?v=202607280856">
+<link rel="stylesheet" href="assets/style.css?v=202607280925">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<script src="assets/version.js?v=202607280856"></script>
+<script src="assets/version.js?v=202607280925"></script>
 </head>
 <body class="locked">
 <p id="gate-msg">Личная страница. Откройте её по ссылке из семейного чата.</p>
@@ -24,7 +24,7 @@
   </p>
   <ul class="cards" id="cards"></ul>
 </main>
-<script src="assets/gate.js?v=202607280856"></script>
+<script src="assets/gate.js?v=202607280925"></script>
 <script>
 const VERDICT_RU = {
   inside: ["fair", "Цена в рынке"],
@@ -54,6 +54,32 @@ function rangeBar(a, price) {
          запрашивают <strong>${fmtM(price)}</strong>
          (${signPct(a.vs_fair_pct)} к оценке)</p>
     </div>`;
+}
+
+// A vague alarm badge told the reader nothing. Show the move itself: what the
+// price was, what it is now, and over how long.
+function priceMove(l) {
+  const h = l.price_history || [];
+  if (h.length < 2) return "";
+  const first = h[0], last = h[h.length - 1];
+  const change = last.price_rub / first.price_rub - 1;
+  if (Math.abs(change) < 0.05) return "";
+  const days = Math.round(
+    (new Date(last.date) - new Date(first.date)) / 86400000);
+  const period = days < 45 ? `за ${days} дней`
+    : days < 400 ? `за ${Math.round(days / 30)} месяцев`
+    : `за ${Math.round(days / 365)} года`;
+  const word = change > 0 ? "выросла" : "снизилась";
+  // A move past the reprice threshold gets a plain-language warning; a modest
+  // one is just reported. Same fact, proportionate emphasis.
+  const flagged = (l.assessment || {}).reprice_flag;
+  const note = flagged
+    ? `<br><span class="basis">Так резко цена не меняется без причины —
+       стоит спросить продавца, что произошло.</span>`
+    : "";
+  return `<p class="pricemove ${change > 0 ? "up" : "down"}">Цена ${word} с
+    ${fmtM(first.price_rub)} до ${fmtM(last.price_rub)} ${period}
+    (${signPct(change)})${note}</p>`;
 }
 
 function analysisBlock(a) {
@@ -104,12 +130,15 @@ async function render() {
       `<p>${l.settlement} · ${area} м² · <strong>${fmtM(l.price_rub)}</strong></p>` +
       `<p><span class="badge ${vc}">${vt}</span>` +
       (STATUS_RU[l.status] ? `<span class="badge status">${STATUS_RU[l.status]}</span>` : "") +
-      (a.reprice_flag ? `<span class="badge flag">Цена скакала!</span>` : "") + `</p>` +
+      `</p>` + priceMove(l) +
       (a.low ? rangeBar(a, l.price_rub) : "") +
       `<div class="details" hidden>` +
       (a.low ? analysisBlock(a) : "") +
       (l.family_notes ? `<h3>Заметки семьи</h3><p>${l.family_notes}</p>` : "") +
-      (l.price_history ? `<p class="hint">История цены: ${l.price_history.map(h => h.date + " — " + fmtM(h.price_rub)).join("; ")}</p>` : "") +
+      (l.price_history && l.price_history.length > 1
+        ? `<h3>История цены</h3><p class="hint">${l.price_history.map(h =>
+            h.date + " — " + fmtM(h.price_rub) + (h.source ? ` (${h.source})` : "")).join("<br>")}</p>`
+        : "") +
       (l.url ? `<p><a href="${l.url}" target="_blank" rel="noreferrer">Открыть объявление</a></p>` : "") +
       `<div class="more-photos"></div></div>`;
     if (l.photos > 0) {

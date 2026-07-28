@@ -57,6 +57,9 @@ button.active { background: var(--accent); color: #fff; border-color: var(--acce
 .rangeends { display: flex; justify-content: space-between;
              font-size: .75em; color: var(--muted); }
 .rangelegend { margin: .35rem 0 0; font-size: .9em; }
+.pricemove { margin: .5rem 0 0; font-size: .9em; font-weight: bold; }
+.pricemove.up { color: var(--red); }
+.pricemove.down { color: #1f6fb2; }
 .card h3 { font-size: 1em; margin: 1rem 0 .3rem; }
 /* Uniform, compact covers so the verdict and the range are visible without
    scrolling past a portrait photo. */
