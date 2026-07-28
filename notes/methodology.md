@@ -632,3 +632,29 @@ long series and calculators. A research pass established:
   need a pinned Russian CA bundle; deferred as a security decision.
 - **Houses and dachas remain unmeasured** by all of these: IRN indexes flats
   only. The ±25% house band stays.
+
+## Compounding and the reinvestment assumption (round 14)
+
+The reader asked why the OFZ line curves upward given a fixed rate, and
+guessed the answer: reinvestment. Correct, and worth stating precisely.
+
+Every compounding line in the model is `capital · (1+r)^t`, which assumes
+the entire return is reinvested at the same rate. The difference is large:
+at 13% simple (coupons spent) 10 mln becomes 23.0 mln in ten years; at 13%
+compound (coupons reinvested) it becomes 33.9 mln — the curve's bend IS the
+10.9 mln of interest-on-interest.
+
+How realistic that assumption is differs by asset, and the page now says so:
+
+- **TMOS** — an accumulating fund tracking the MCFTR total-return index;
+  dividends are reinvested inside the fund automatically. The compound model
+  matches the instrument exactly.
+- **Deposit** — capitalisation of interest does the same job; our deposit
+  path already compounds (with the declining rate and 13% tax).
+- **OFZ** — the weak spot. Coupons arrive as cash and must be reinvested by
+  hand, and the 13% is contractual only for the coupons of the bonds bought
+  today: reinvested coupons buy new bonds at whatever yields prevail then,
+  likely lower if rates fall. So the OFZ line is the standard
+  yield-to-maturity convention, and its right-hand end is optimistic by the
+  reinvestment-rate risk. A zero-coupon or coupon-capitalising structure
+  would remove the caveat, but the plain OFZ ladder does not.
