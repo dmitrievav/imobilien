@@ -1,7 +1,15 @@
 # Imobilien — Family Real-Estate Decision Project — Design
 
 Date: 2026-07-25
-Status: draft, pending user approval
+Status: **historical** — this is the original design the project was built
+from. The implementation has since evolved well past it through reader
+feedback (site reduced to two pages, per-listing valuation engine with a
+computed accuracy band, world-evidence return bases, dual-currency view,
+cache busting, and more). The living documentation is `CLAUDE.md`
+(architecture, invariants, commands) and `notes/methodology.md` (every
+number's provenance and every superseded decision with its reason). This
+file is kept for the record of what was originally agreed, not as a
+description of current behaviour.
 
 ## 1. Context and goals
 
